@@ -172,13 +172,13 @@ export default function Collect() {
                     </Select>
                 }
             >
-                <TabPane tab="Tab 1" key="1">
+                <TabPane tab="今日集采单" key="1">
                     {randerTable()}
                 </TabPane>
-                <TabPane tab="Tab 2" key="2">
+                <TabPane tab="昨日集采单" key="2">
                     {randerTable()}
                 </TabPane>
-                <TabPane tab="Tab 3" key="3">
+                <TabPane tab="历史集采单" key="3">
                     {randerTable()}
                 </TabPane>
             </Tabs>
