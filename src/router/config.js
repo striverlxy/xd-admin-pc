@@ -35,12 +35,12 @@ const router = [
                         icon: <WechatOutlined />,
                         component: lazy(() => import('../pages/home'))
                     },
-                    // {
-                    //     path: '/wxapp',
-                    //     name: '小程序管理',
-                    //     icon: <WechatOutlined />,
-                    //     component: lazy(() => import('../pages/home'))
-                    // },
+                    {
+                        path: '/wxapp',
+                        name: '小程序管理',
+                        icon: <WechatOutlined />,
+                        component: lazy(() => import('../pages/home'))
+                    },
                     {
                         path: '/farmer',
                         name: '农户管理',
@@ -54,6 +54,23 @@ const router = [
                             {
                                 path: '/farmer',
                                 redirect: '/farmer/list',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
+                        path: '/warehouse',
+                        name: '仓库管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/warehouse/collect',
+                                name: '集采单管理',
+                                component: lazy(() => import('../pages/warehouse/collect'))
+                            },
+                            {
+                                path: '/warehouse',
+                                redirect: '/warehouse/collect',
                                 hidden: true
                             }
                         ]
