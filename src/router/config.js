@@ -84,6 +84,11 @@ const router = [
                                 component: lazy(() => import('../pages/warehouse/sorting'))
                             },
                             {
+                                path: '/warehouse/outbound',
+                                name: '出库管理',
+                                component: lazy(() => import('../pages/warehouse/outbound'))
+                            },
+                            {
                                 path: '/warehouse',
                                 redirect: '/warehouse/collect',
                                 hidden: true
