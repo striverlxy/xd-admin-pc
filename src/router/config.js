@@ -79,6 +79,11 @@ const router = [
                                 component: lazy(() => import('../pages/warehouse/sowing'))
                             },
                             {
+                                path: '/warehouse/sorting',
+                                name: '分拣管理',
+                                component: lazy(() => import('../pages/warehouse/sorting'))
+                            },
+                            {
                                 path: '/warehouse',
                                 redirect: '/warehouse/collect',
                                 hidden: true
