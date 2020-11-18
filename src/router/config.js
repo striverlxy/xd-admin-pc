@@ -100,60 +100,6 @@ const router = [
                             }
                         ]
                     },
-
-
-
-
-
-                    // {
-                    //     path: '/monitor',
-                    //     name: '监控与告警',
-                    //     icon: <MonitorOutlined />,
-                    //     children: [
-                    //         {
-                    //             path: '/monitor/stationMonitor',
-                    //             name: '站点监控',
-                    //             component: lazy(() => import('../pages/monitor/stationMonitor'))
-                    //         },
-                    //         {
-                    //             path: '/monitor/deviceMonitor',
-                    //             name: '充电桩监控',
-                    //             component: lazy(() => import('../pages/monitor/deviceMonitor'))
-                    //         },
-                    //         {
-                    //             path: '/monitor/warningInfo',
-                    //             name: '告警信息',
-                    //             component: lazy(() => import('../pages/monitor/warningInfo'))
-                    //         },
-                    //         {
-                    //             path: '/monitor',
-                    //             redirect: '/monitor/stationMonitor',
-                    //             hidden: true
-                    //         }
-                    //     ]
-                    // },
-                    // {
-                    //     path: '/opt',
-                    //     name: '运营管理',
-                    //     icon: <MonitorOutlined />,
-                    //     children: [
-                    //         {
-                    //             path: '/opt/station',
-                    //             name: '充电站',
-                    //             component: lazy(() => import('../pages/opt/station'))
-                    //         },
-                    //         {
-                    //             path: '/opt/device',
-                    //             name: '充电桩',
-                    //             component: lazy(() => import('../pages/opt/device'))
-                    //         },
-                    //         {
-                    //             path: '/opt',
-                    //             redirect: '/opt/station',
-                    //             hidden: true
-                    //         }
-                    //     ]
-                    // },
                     {
                         path: '/404',
                         name: '404',
