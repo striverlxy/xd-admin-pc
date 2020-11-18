@@ -27,7 +27,7 @@ const gridStyle = {
     textAlign: 'center',
 };
 
-export default function Driver() {
+export default function Truck() {
 
     const [data, setData] = useState([])
     const [pagination, setPagination] = useState({
@@ -90,17 +90,12 @@ export default function Driver() {
             align: 'center',
         },
         {
-            title: '司机工号',
+            title: '车牌号',
             dataIndex: 'name',
             align: 'center',
         },
         {
-            title: '司机姓名',
-            dataIndex: 'name',
-            align: 'center',
-        },
-        {
-            title: '小程序认证',
+            title: '车型',
             dataIndex: 'name',
             align: 'center',
         },
@@ -116,7 +111,7 @@ export default function Driver() {
             render: (text, record) => (
                 <Space split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
-                    <Typography.Link>详情</Typography.Link>
+                    <Typography.Link>编辑</Typography.Link>
                 </Space>
             )
         }
@@ -126,7 +121,7 @@ export default function Driver() {
         return (
             <Card 
                 size="small"
-                title="（2020-10-01 ～ 2020-10-07）出货司机排班表" 
+                title="（2020-10-01 ～ 2020-10-07）货车排班表" 
                 extra={
                     <Space size={60}>
                         <Radio.Group>
@@ -147,7 +142,7 @@ export default function Driver() {
                 <Card.Grid hoverable={false} style={gridStyle}>10/6</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>10/7</Card.Grid>
 
-                <Card.Grid hoverable={false} style={firstGridStyle}>司机姓名（工号）</Card.Grid>
+                <Card.Grid hoverable={false} style={firstGridStyle}>货车车牌（车型）</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>周一</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>周二</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>周三</Card.Grid>
@@ -159,20 +154,20 @@ export default function Driver() {
                 <Card.Grid style={firstGridStyle}>
                     <Space size={20}>
                         <Select style={{width: 100}}>
-                            <Select.Option>司机1</Select.Option>
-                            <Select.Option>司机2</Select.Option>
-                            <Select.Option>司机3</Select.Option>
+                            <Select.Option>货车1</Select.Option>
+                            <Select.Option>货车2</Select.Option>
+                            <Select.Option>货车3</Select.Option>
                         </Select>
-                        <Checkbox size="small">全当值</Checkbox>
+                        <Checkbox size="small">全可用</Checkbox>
                     </Space>
                 </Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">当值</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
             </Card>
         )
     }
@@ -209,10 +204,10 @@ export default function Driver() {
                     </Select>
                 }
             >
-                <TabPane tab="司机排班" key="1">
+                <TabPane tab="货车排班" key="1">
                     {renderSchedulingCard()}
                 </TabPane>
-                <TabPane tab="司机列表" key="2">
+                <TabPane tab="货车列表" key="2">
                     {randerTable()}
                 </TabPane>
             </Tabs>

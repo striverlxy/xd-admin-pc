@@ -94,6 +94,11 @@ const router = [
                                 component: lazy(() => import('../pages/warehouse/driver'))
                             },
                             {
+                                path: '/warehouse/truck',
+                                name: '货车管理',
+                                component: lazy(() => import('../pages/warehouse/truck'))
+                            },
+                            {
                                 path: '/warehouse',
                                 redirect: '/warehouse/collect',
                                 hidden: true
