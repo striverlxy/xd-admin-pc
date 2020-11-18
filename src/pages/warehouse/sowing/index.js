@@ -18,7 +18,7 @@ const blockStyle = {
     boxShadow: '0 2px 3px 0 rgba(0, 0, 0, .1)'
 }
 
-export default function Inbound() {
+export default function Sowing() {
 
     const [data, setData] = useState([])
     const [pagination, setPagination] = useState({
@@ -107,25 +107,15 @@ export default function Inbound() {
             align: 'center',
         },
         {
-            title: '供货箱码',
+            title: '商品数量',
             dataIndex: 'name',
             align: 'center',
         },
-        {
-            title: '供货数量',
-            dataIndex: 'name',
-            align: 'center',
-        },
-        {
-            title: '状态',
-            dataIndex: 'name',
-            align: 'center',
-        }
     ];
 
     const renderTable = () => {
         return (
-            <Card size="small" title="xxx1号农户" extra={<a href="#">More</a>}>
+            <Card size="small" title="xxx路线1" extra={<a href="#">More</a>}>
                 <Table
                     bordered={true}
                     style={{marginTop: 12}}
@@ -150,16 +140,10 @@ export default function Inbound() {
                     </Space>
                 }>
                     <Space>
-                        <Input 
-                            style={inputStyle} 
-                            size="middle" 
-                            placeholder="入库单ID" 
-                            allowClear 
-                        />
                         <Select
                             size="middle"
                             style={borderRadius}
-                            placeholder="请选择供货农户"
+                            placeholder="请选择配送路线"
                             allowClear 
                         >
                             <Option value="1">农户1</Option>
@@ -169,13 +153,13 @@ export default function Inbound() {
                 </Card>
                 <Space>
                     <Tabs tabPosition='left' className={styles.tableTab}>
-                        <TabPane tab="xxx1号农户（未入库）" key="1">
+                        <TabPane tab="xxx路线1" key="1">
                             {renderTable()}
                         </TabPane>
-                        <TabPane tab="xxx2号农户（部分入库）" key="2">
+                        <TabPane tab="xxx路线2" key="2">
                             {renderTable()}
                         </TabPane>
-                        <TabPane tab="xxx3号农户（全部入库）" key="3">
+                        <TabPane tab="xxx路线3" key="3">
                             {renderTable()}
                         </TabPane>
                     </Tabs>
@@ -195,13 +179,13 @@ export default function Inbound() {
                     </Select>
                 }
             >
-                <TabPane tab="今日入库" key="1">
+                <TabPane tab="今日播种" key="1">
                     {randerTableComponents()}
                 </TabPane>
-                <TabPane tab="昨日入库" key="2">
+                <TabPane tab="昨日播种" key="2">
                     {randerTableComponents()}
                 </TabPane>
-                <TabPane tab="历史入库" key="3">
+                <TabPane tab="历史播种" key="3">
                     {randerTableComponents()}
                 </TabPane>
             </Tabs>

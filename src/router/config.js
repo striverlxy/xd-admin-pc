@@ -74,6 +74,11 @@ const router = [
                                 component: lazy(() => import('../pages/warehouse/inbound'))
                             },
                             {
+                                path: '/warehouse/sowing',
+                                name: '播种管理',
+                                component: lazy(() => import('../pages/warehouse/sowing'))
+                            },
+                            {
                                 path: '/warehouse',
                                 redirect: '/warehouse/collect',
                                 hidden: true
