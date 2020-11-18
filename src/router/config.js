@@ -89,6 +89,11 @@ const router = [
                                 component: lazy(() => import('../pages/warehouse/outbound'))
                             },
                             {
+                                path: '/warehouse/driver',
+                                name: '司机管理',
+                                component: lazy(() => import('../pages/warehouse/driver'))
+                            },
+                            {
                                 path: '/warehouse',
                                 redirect: '/warehouse/collect',
                                 hidden: true
