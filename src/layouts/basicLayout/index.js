@@ -171,6 +171,7 @@ const BasicLayout = ({route, children}) => {
                                 })
                             }
                         </Breadcrumb>
+                        
                     </div>
                     <Space size='large' align="center">
                         <Badge dot={true}>
