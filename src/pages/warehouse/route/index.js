@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List} from 'antd';
 import styles from './style.less'
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -121,11 +121,37 @@ export default function RouteManage() {
         }
     ];
 
+    const [routeDrawerProps, setRouteDrawerProps] = useState({
+        visible: false,
+        title: '新增线路'
+    })
+    const [routeDrawerData, setRouteDrawerData] = useState({})
+    const [routeDrawerLoading, setRouteDrawerLoading] = useState(false)
+    const handleRouteDrawerOpen = (data = {}) => {
+        setRouteDrawerProps({
+            visible: true,
+            title: '新增线路'
+        })
+    }
+    const handleRouteDrawerClose = () => {
+        setRouteDrawerProps({
+            visible: false,
+            title: '新增线路'
+        })
+        setRouteDrawerData({})
+        setRouteDrawerLoading(false)
+    }
+    const handleRouteDrawerOk = () => {
+
+    }
+
+    const [addedRouteList, setAddedRouteList] = useState([2, 1])
+
     const randerTable = () => {
         return (
             <div>
                 <Space>
-                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />}>
+                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={handleRouteDrawerOpen}>
                         添加
                     </Button>
                 </Space>
@@ -138,6 +164,78 @@ export default function RouteManage() {
                     pagination={pagination}
                     loading={loading}
                 />
+                <Drawer
+                    title={routeDrawerProps.title}
+                    destroyOnClose
+                    width={500}
+                    onClose={handleRouteDrawerClose}
+                    visible={routeDrawerProps.visible}
+                    bodyStyle={{ paddingBottom: 80 }}
+                    footer={
+                        <div
+                            style={{
+                                textAlign: 'right',
+                            }}
+                        >
+                            <Button onClick={handleRouteDrawerOk} loading={routeDrawerLoading} type="primary" style={{ marginRight: 8 }}>
+                                保存
+                            </Button>
+                            <Button onClick={handleRouteDrawerClose} type="primary" danger>
+                                关闭
+                            </Button>
+                        </div>
+                    }
+                >
+                    <Card size="small" title="基本信息(* 必填)">
+                            <Form>
+                                <Form.Item
+                                    label="路线名"
+                                >
+                                    <Input width={200} placeholder="请输入品牌名称"></Input>
+                                </Form.Item>
+                                <Form.Item
+                                    label="集配仓"
+                                >
+                                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
+                                        <Select.Option value="1">成都集配仓</Select.Option>
+                                        <Select.Option value="2">上海集配仓</Select.Option>
+                                        <Select.Option value="3">南京集配仓</Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Form>
+                        </Card>
+                        <Card size="small" style={{marginTop: 20}} title="站点路线">
+                            <List
+                                size="small"
+                                itemLayout="horizontal"
+                                // dataSource={addedRouteList}
+                                footer={<div></div>}
+                            >
+                                {
+                                    addedRouteList.map((item, index) => (
+                                        <List.Item
+                                            actions={[
+                                                <DeleteOutlined className={styles.delete_icon} />
+                                            ]}
+                                        >
+                                            <Select placeholder="请选择站点" value={item} style={{ width: 200 }}>
+                                                <Select.Option value={1}>xxxxxx站点1</Select.Option>
+                                                <Select.Option value={2}>xxxxxx站点2</Select.Option>
+                                                <Select.Option value={3}>xxxxxx站点3</Select.Option>
+                                            </Select>
+                                        </List.Item>
+                                    ))
+                                }
+                                <List.Item>
+                                    <Select placeholder="请选择站点" style={{ width: 200 }}>
+                                        <Select.Option value={1}>xxxxxx站点1</Select.Option>
+                                        <Select.Option value={2}>xxxxxx站点2</Select.Option>
+                                        <Select.Option value={3}>xxxxxx站点3</Select.Option>
+                                    </Select>
+                                </List.Item>
+                            </List>
+                        </Card>
+                </Drawer>
             </div>
         )
     }
