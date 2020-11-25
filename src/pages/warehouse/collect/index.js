@@ -71,7 +71,7 @@ export default function Collect() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -123,7 +123,7 @@ export default function Collect() {
     const randerTable = () => {
         return (
             <div>
-                <Card title="数据检索" extra={
+                <Card size="small" title="数据检索" extra={
                     <Space>
                         <Button style={borderRadius} type="primary" size="middle" icon={<SearchOutlined />}>
                                 搜索

@@ -71,7 +71,7 @@ export default function Inbound() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [

@@ -71,7 +71,7 @@ export default function RouteManage() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -111,7 +111,7 @@ export default function RouteManage() {
             key: 'action',
             width: 300,
             render: (text, record) => (
-                <Space split={<Divider type="vertical" />}>
+                <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
                     <Typography.Link>开启</Typography.Link>

@@ -80,7 +80,7 @@ export default function Driver() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -114,7 +114,7 @@ export default function Driver() {
             align: 'center',
             key: 'action',
             render: (text, record) => (
-                <Space split={<Divider type="vertical" />}>
+                <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>详情</Typography.Link>
                 </Space>

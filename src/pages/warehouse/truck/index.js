@@ -80,7 +80,7 @@ export default function Truck() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -109,7 +109,7 @@ export default function Truck() {
             align: 'center',
             key: 'action',
             render: (text, record) => (
-                <Space split={<Divider type="vertical" />}>
+                <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
                 </Space>

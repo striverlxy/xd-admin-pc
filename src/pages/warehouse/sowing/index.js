@@ -71,7 +71,7 @@ export default function Sowing() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -132,7 +132,7 @@ export default function Sowing() {
     const randerTableComponents = () => {
         return (
             <div>
-                <Card title="数据检索" extra={
+                <Card size="small" title="数据检索" extra={
                     <Space>
                         <Button style={borderRadius} type="primary" size="middle" icon={<SearchOutlined />}>
                                 搜索

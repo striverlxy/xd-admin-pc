@@ -71,7 +71,7 @@ export default function Outbound() {
             ]
             setData(data)
             setLoading(false)
-        }, 2000)
+        }, 100)
     }, [])
 
     const columns = [
@@ -127,7 +127,7 @@ export default function Outbound() {
             key: 'action',
             width: 200,
             render: (text, record) => (
-                <Space split={<Divider type="vertical" />}>
+                <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link>打印</Typography.Link>
                     <Typography.Link type="danger">作废</Typography.Link>
                     <Typography.Link>详情</Typography.Link>
