@@ -116,6 +116,28 @@ const router = [
                         ]
                     },
                     {
+                        path: '/order',
+                        name: '订单管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/order/list',
+                                name: '订单列表',
+                                component: lazy(() => import('../pages/order/list'))
+                            },
+                            {
+                                path: '/order/splitSetting',
+                                name: '拆单设置',
+                                component: lazy(() => import('../pages/order/splitSetting'))
+                            },
+                            {
+                                path: '/farmer',
+                                redirect: '/farmer/list',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
                         path: '/404',
                         name: '404',
                         hidden: true,
