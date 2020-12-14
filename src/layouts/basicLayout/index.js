@@ -130,7 +130,7 @@ const BasicLayout = ({route, children}) => {
     return (
         <Layout className={styles.customer_component_layout}>
             <Sider trigger={null} collapsible collapsed={collapsed} className={styles.sider}>
-                <div className={styles.logo} />
+                <div className={styles.logo}>鲜道网管理后台</div>
                 <Menu 
                     theme="dark" 
                     mode="inline"

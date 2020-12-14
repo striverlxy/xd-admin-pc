@@ -42,6 +42,33 @@ const router = [
                         component: lazy(() => import('../pages/home'))
                     },
                     {
+                        path: '/product',
+                        name: '商品管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/product/spuList',
+                                name: '商品总库',
+                                component: lazy(() => import('../pages/product/spuList'))
+                            },
+                            {
+                                path: '/product/category',
+                                name: '商品分类',
+                                component: lazy(() => import('../pages/product/category'))
+                            },
+                            {
+                                path: '/product/specifications',
+                                name: '商品规格',
+                                component: lazy(() => import('../pages/product/specifications'))
+                            },
+                            {
+                                path: '/product',
+                                redirect: '/product/spuList',
+                                hidden: true
+                            },
+                        ]
+                    },
+                    {
                         path: '/farmer',
                         name: '农户管理',
                         icon: <UserOutlined />,
