@@ -215,6 +215,23 @@ const router = [
                         ]
                     },
                     {
+                        path: '/system',
+                        name: '系统管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/system/adminUser',
+                                name: '用户管理',
+                                component: lazy(() => import('../pages/system/adminUser'))
+                            },
+                            {
+                                path: '/system',
+                                redirect: '/system/adminUser',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
                         path: '/404',
                         name: '404',
                         hidden: true,
