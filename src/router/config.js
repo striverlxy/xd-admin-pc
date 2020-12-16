@@ -39,7 +39,23 @@ const router = [
                         path: '/wxapp',
                         name: '小程序管理',
                         icon: <WechatOutlined />,
-                        component: lazy(() => import('../pages/home'))
+                        children: [
+                            {
+                                path: '/wxapp/specialPage',
+                                name: '主题页配置',
+                                component: lazy(() => import('../pages/wxapp/specialPage'))
+                            },
+                            {
+                                path: '/wxapp/category',
+                                name: '分类导航',
+                                component: lazy(() => import('../pages/wxapp/category'))
+                            },
+                            {
+                                path: '/wxapp',
+                                redirect: '/wxapp/specialPage',
+                                hidden: true
+                            },
+                        ]
                     },
                     {
                         path: '/product',
@@ -160,6 +176,40 @@ const router = [
                             {
                                 path: '/farmer',
                                 redirect: '/farmer/list',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
+                        path: '/finance',
+                        name: '财务管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/finance/splitBill',
+                                name: '分账单',
+                                component: lazy(() => import('../pages/finance/splitBill'))
+                            },
+                            {
+                                path: '/finance',
+                                redirect: '/finance/splitBill',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
+                        path: '/customer',
+                        name: '客户管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/customer/customerList',
+                                name: '客户列表',
+                                component: lazy(() => import('../pages/customer/customerList'))
+                            },
+                            {
+                                path: '/customer',
+                                redirect: '/customer/customerList',
                                 hidden: true
                             }
                         ]
