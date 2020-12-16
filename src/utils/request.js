@@ -13,7 +13,7 @@ export default class request {
 	
 	static whiteUrls = ['/user/brand/signIn']
     
-    static API_HOST = 'http://118.31.227.234:8081'
+    static API_HOST = 'http://localhost:8080'
 
     static SUCCESS_CODE = '000000'
 
@@ -126,9 +126,9 @@ export default class request {
 	static post(url, params) {
 		let _opt = request.getOpt()
 		console.log(url)
-		if (null == _opt.headers.Authorization && request.whiteUrls.indexOf(url) == -1) {
-			return;
-		}
+		// if (null == _opt.headers.Authorization && request.whiteUrls.indexOf(url) == -1) {
+		// 	return;
+		// }
 		_opt.method = 'POST';
 		_opt.body = JSON.stringify(params);
 

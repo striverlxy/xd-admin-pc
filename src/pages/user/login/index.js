@@ -67,8 +67,17 @@ const Login = () => {
     }, [timing])
 
     const onFinish = async values => {
+        
+        let data = {
+            phone: values.mobile,
+            password: values.password,
+            code: values.captcha,
+            systemId: 0
+        }
+        
+        let resp = await httpUtils.post('/internal/signIn', data)
 
-        localStorage.setItem(localStorage.keyMap.ACCESS_TOKEN, "111111111")
+        localStorage.setItem(localStorage.keyMap.ACCESS_TOKEN, resp.accessToken)
         history.push('/home')
     };
 
@@ -77,7 +86,7 @@ const Login = () => {
             <div className={styles.login}>
                 <Form form={form} onFinish={onFinish}>
                     {
-                        loginInfo.loginType == 'mobile' && loginInfo.status == 'error' && (
+                        loginErrMsg && (
                             <Alert
                                 style={{
                                     marginBottom: 24,
