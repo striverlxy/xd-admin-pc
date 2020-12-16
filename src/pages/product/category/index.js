@@ -5,6 +5,15 @@ import httpUtils from '../../../utils/request'
 
 const borderRadius = { borderRadius: 4 }
 
+const blockStyle = {
+    padding: 12,
+    marginTop: 12,
+    background: '#fff',
+    borderRadius: 4,
+    marginBottom: 12,
+    boxShadow: '0 2px 3px 0 rgba(0, 0, 0, .1)'
+}
+
 const Category = () => {
 
     const [rootCate, setRootCate] = useState({})
@@ -118,7 +127,7 @@ const Category = () => {
     }
 
     return (
-        <div>
+        <div style={blockStyle}>
             <Space>
                 <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={() => handleCateModalOpen()}>
                     添加
