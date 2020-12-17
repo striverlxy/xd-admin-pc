@@ -38,7 +38,7 @@ export default class PicturesWall extends React.Component {
     this.setState({ fileList })
     let pics = fileList
                 .filter(file => file.response && file.response.code == '000000')
-                .map(file => file.response.data.url)
+                .map(file => file.response.data.picUrl)
     this.props.saveFileList(pics)
   };
 
@@ -53,12 +53,9 @@ export default class PicturesWall extends React.Component {
     return (
       <div className="clearfix">
         <Upload
-          action={`${httpUtils.API_HOST}/oss-service/oss/ali/upload`}
+          action={`${httpUtils.API_HOST}/common/storage/object/upload`}
           listType="picture-card"
           fileList={fileList}
-          data= {{
-            bucketName: 'test-zmy'
-          }}
           onPreview={this.handlePreview}
           onChange={this.handleChange}
         >
