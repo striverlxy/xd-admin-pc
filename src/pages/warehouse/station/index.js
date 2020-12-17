@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Modal, Form, Input, message} from 'antd';
 import styles from './style.less'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
+
+const layout = {
+    labelCol: { span: 5 },
+    wrapperCol: { span: 16 },
+};
 
 const inputStyle = { width: 160, borderRadius: 4 }
 const borderRadius = { borderRadius: 4 }
@@ -20,6 +25,17 @@ const blockStyle = {
 }
 
 export default function Station() {
+
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
+
 
     const [data, setData] = useState([])
     const [tableLoading, setTableLoading] = useState(false)
@@ -37,6 +53,7 @@ export default function Station() {
 
     useEffect(() => {
         getStationList()
+        getStoreList()
     }, [])
 
     const columns = [
@@ -93,7 +110,7 @@ export default function Station() {
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
-                    <Typography.Link>编辑</Typography.Link>
+                    <Typography.Link onClick={() => handleSiteModalOpen(record)}>编辑</Typography.Link>
                     <Typography.Link>营业</Typography.Link>
                     <Typography.Link type="danger">停业</Typography.Link>
                 </Space>
@@ -101,11 +118,40 @@ export default function Station() {
         }
     ];
 
+    const [siteModalProps, setSiteModalProps] = useState({
+        visible: false,
+        title: '新增站点'
+    })
+    const [siteModalData, setSiteModalData] = useState({})
+    const [siteModalLoading, setSiteModalLoading] = useState(false)
+    
+    const handleSiteModalOpen = (data = {}) => {
+        setSiteModalProps({
+            visible: true,
+            title: data.id ? '更新站点': '新增站点'
+        })
+        setSiteModalData(data)
+    }
+    const handleSiteModalClose = () => {
+        setSiteModalProps({
+            visible: false,
+            title: '新增站点'
+        })
+        setSiteModalData({})
+        setSiteModalLoading(false)
+    }
+    const handleSiteModalOk = async () => {
+        await httpUtils.post(siteModalData.id ? '/admin/site/update': '/admin/site/add', siteModalData)
+        message.success('操作完成')
+        handleSiteModalClose()
+        getStationList()
+    }
+
     const randerTable = () => {
         return (
             <div>
                 <Space>
-                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />}>
+                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={() => handleSiteModalOpen()}>
                         添加
                     </Button>
                 </Space>
@@ -121,6 +167,117 @@ export default function Station() {
                     loading={tableLoading}
                     onChange={async (pagination, filters, sorter) => getStationList(pagination)}
                 />
+                <Modal
+                    destroyOnClose
+                    title={siteModalProps.title}
+                    visible={siteModalProps.visible}
+                    onOk={handleSiteModalOk}
+                    confirmLoading={siteModalLoading}
+                    onCancel={handleSiteModalClose}
+                >
+                    <Form size="large" {...layout}>
+                        <Form.Item
+                            label="站点名"
+                        >
+                            <Input 
+                                value={siteModalData.siteName} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        siteName: value
+                                    })
+                                }}  
+                                placeholder="请输入组织名称" />
+                        </Form.Item>
+                        <Form.Item
+                            label="集配仓"
+                        >
+                            <Select 
+                                placeholder="请选择集配仓" 
+                                style={{ width: 200 }} 
+                                value={siteModalData.storeId} 
+                                onChange={e =>{
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        storeId: e
+                                    })
+                                }}>
+                                {
+                                    storeList.map((item, index) => (
+                                        <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                    ))
+                                }
+                            </Select>
+                        </Form.Item>
+                        <Form.Item
+                            label="站点负责人"
+                        >
+                            <Input 
+                                value={siteModalData.contactName} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        contactName: value
+                                    })
+                                }}  
+                                placeholder="请输入站点负责人" />
+                        </Form.Item>
+                        <Form.Item
+                            label="联系电话"
+                        >
+                            <Input 
+                                value={siteModalData.contactPhone} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        contactPhone: value
+                                    })
+                                }}  
+                                placeholder="请输入联系电话" />
+                        </Form.Item>
+                        <Form.Item
+                            label="站点地址"
+                        >
+                            <Input 
+                                value={siteModalData.address} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        address: value
+                                    })
+                                }}  
+                                placeholder="请输入站点地址" />
+                        </Form.Item>
+                        <Form.Item
+                            label="配送半径(km)"
+                        >
+                            <Input 
+                                value={siteModalData.serviceDistance} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setSiteModalData({
+                                        ...siteModalData,
+                                        serviceDistance: value
+                                    })
+                                }}  
+                                placeholder="请输入配送半径" />
+                        </Form.Item>
+                    </Form>
+                </Modal>
             </div>
         )
     }
@@ -129,10 +286,12 @@ export default function Station() {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >

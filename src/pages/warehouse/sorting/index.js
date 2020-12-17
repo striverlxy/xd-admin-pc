@@ -42,12 +42,12 @@ export default function Sorting() {
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '订单ID',
-            dataIndex: 'name',
+            dataIndex: 'masterOrderNo',
             align: 'center',
             width: 200
         },

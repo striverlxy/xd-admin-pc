@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List, Modal, message} from 'antd';
 import styles from './style.less'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -21,6 +21,16 @@ const blockStyle = {
 
 export default function RouteManage() {
 
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
+
     const [data, setData] = useState([])
     const [tableLoading, setTableLoading] = useState(false)
 
@@ -37,6 +47,7 @@ export default function RouteManage() {
 
     useEffect(() => {
         getRouteList()
+        getStoreList()
     }, [])
 
     const columns = [
@@ -72,6 +83,7 @@ export default function RouteManage() {
             width: 300,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
+                    <Typography.Link >添加站点</Typography.Link>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
                     <Typography.Link>开启</Typography.Link>
@@ -80,6 +92,13 @@ export default function RouteManage() {
             )
         }
     ];
+
+
+    const [siteList, setSiteList] = useState([])
+    const getSiteList = async ()=> {
+        let resp = await httpUtils.get('/admin/site/list')
+        setSiteList(resp)
+    }
 
     const [routeDrawerProps, setRouteDrawerProps] = useState({
         visible: false,
@@ -92,6 +111,7 @@ export default function RouteManage() {
             visible: true,
             title: '新增线路'
         })
+        getSiteList()
     }
     const handleRouteDrawerClose = () => {
         setRouteDrawerProps({
@@ -107,11 +127,42 @@ export default function RouteManage() {
 
     const [addedRouteList, setAddedRouteList] = useState([2, 1])
 
+
+    const [routeModalProps, setRouteModalProps] = useState({
+        visible: false,
+        title: '新增路线'
+    })
+    const [routeModalData, setRouteModalData] = useState({})
+    const [routeModalLoading, setRouteModalLoading] = useState(false)
+    
+    const handleRouteModalOpen = (data = {}) => {
+        setRouteModalProps({
+            visible: true,
+            title: data.id ? '更新路线': '新增路线'
+        })
+        setRouteModalData(data)
+    }
+    const handleRouteModalClose = () => {
+        setRouteModalProps({
+            visible: false,
+            title: '新增路线'
+        })
+        setRouteModalData({})
+        setRouteModalLoading(false)
+    }
+    const handleRouteModalOk = async () => {
+        await httpUtils.post(routeModalData.id ? '/admin/route/update': '/admin/route/add', routeModalData)
+        message.success('操作完成')
+        handleRouteModalClose()
+        getRouteList()
+    }
+
+
     const randerTable = () => {
         return (
             <div>
                 <Space>
-                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={handleRouteDrawerOpen}>
+                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={() => handleRouteModalOpen()}>
                         添加
                     </Button>
                 </Space>
@@ -127,6 +178,54 @@ export default function RouteManage() {
                     loading={tableLoading}
                     onChange={async (pagination, filters, sorter) => getRouteList(pagination)}
                 />
+                <Modal
+                    destroyOnClose
+                    title={routeModalProps.title}
+                    visible={routeModalProps.visible}
+                    onOk={handleRouteModalOk}
+                    confirmLoading={routeModalLoading}
+                    onCancel={handleRouteModalClose}
+                >
+                    <Form>
+                        <Form.Item
+                            label="路线名"
+                        >
+                            <Input 
+                                value={routeModalData.routeName}
+                                width={200} 
+                                placeholder="请输入路线名" 
+                                onChange={e => {
+                                    const { value } = e.target
+                                    setRouteModalData({
+                                        ...routeModalData,
+                                        routeName: value
+                                    })
+                                }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            label="集配仓"
+                        >
+                            <Select 
+                                placeholder="请选择集配仓" 
+                                style={{ width: 200 }} 
+                                value={routeModalData.storeId} 
+                                onChange={e => {
+                                    setRouteModalData({
+                                        ...routeModalData,
+                                        storeId: e
+                                    })
+                                }}
+                            >
+                                {
+                                    storeList.map((item, index) => (
+                                        <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                    ))
+                                }
+                            </Select>
+                        </Form.Item>
+                    </Form>
+                </Modal>
                 <Drawer
                     title={routeDrawerProps.title}
                     destroyOnClose
@@ -149,55 +248,45 @@ export default function RouteManage() {
                         </div>
                     }
                 >
-                    <Card size="small" title="基本信息(* 必填)">
-                            <Form>
-                                <Form.Item
-                                    label="路线名"
-                                >
-                                    <Input width={200} placeholder="请输入品牌名称"></Input>
-                                </Form.Item>
-                                <Form.Item
-                                    label="集配仓"
-                                >
-                                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                                        <Select.Option value="1">成都集配仓</Select.Option>
-                                        <Select.Option value="2">上海集配仓</Select.Option>
-                                        <Select.Option value="3">南京集配仓</Select.Option>
-                                    </Select>
-                                </Form.Item>
-                            </Form>
-                        </Card>
-                        <Card size="small" style={{marginTop: 20}} title="站点路线">
-                            <List
-                                size="small"
-                                itemLayout="horizontal"
-                                // dataSource={addedRouteList}
-                                footer={<div></div>}
+                    <Card size="small" style={{marginTop: 20}} title="站点路线">
+                        <List
+                            size="small"
+                            itemLayout="horizontal"
+                            // dataSource={addedRouteList}
+                            footer={<div></div>}
+                        >
+                            {
+                                addedRouteList.map((item, index) => (
+                                    <List.Item
+                                        actions={[
+                                            <DeleteOutlined className={styles.delete_icon} />
+                                        ]}
+                                    >
+                                        <Input size="middle" disabled/>
+                                    </List.Item>
+                                ))
+                            }
+                            <List.Item
+                                actions={[
+                                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={handleRouteDrawerOpen}>
+                                        添加
+                                    </Button>
+                                ]}
                             >
-                                {
-                                    addedRouteList.map((item, index) => (
-                                        <List.Item
-                                            actions={[
-                                                <DeleteOutlined className={styles.delete_icon} />
-                                            ]}
-                                        >
-                                            <Select placeholder="请选择站点" value={item} style={{ width: 200 }}>
-                                                <Select.Option value={1}>xxxxxx站点1</Select.Option>
-                                                <Select.Option value={2}>xxxxxx站点2</Select.Option>
-                                                <Select.Option value={3}>xxxxxx站点3</Select.Option>
-                                            </Select>
-                                        </List.Item>
-                                    ))
-                                }
-                                <List.Item>
-                                    <Select placeholder="请选择站点" style={{ width: 200 }}>
-                                        <Select.Option value={1}>xxxxxx站点1</Select.Option>
-                                        <Select.Option value={2}>xxxxxx站点2</Select.Option>
-                                        <Select.Option value={3}>xxxxxx站点3</Select.Option>
-                                    </Select>
-                                </List.Item>
-                            </List>
-                        </Card>
+                                <Select 
+                                    placeholder="请选择站点" 
+                                    style={{ width: 200 }} 
+                                    onChange={e => {}}
+                                >
+                                    {
+                                        siteList.map((item, index) => (
+                                            <Select.Option value={item.id}>{item.siteName}</Select.Option>
+                                        ))
+                                    }
+                                </Select>
+                            </List.Item>
+                        </List>
+                    </Card>
                 </Drawer>
             </div>
         )
@@ -207,10 +296,12 @@ export default function RouteManage() {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >
