@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Card, Space, Input} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,93 +22,57 @@ const blockStyle = {
 export default function Collect() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getCollectList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/order/collect/master/list', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三04张三04张三04",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getCollectList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '集采单ID',
-            dataIndex: 'name',
+            dataIndex: 'collectMasterOrderNo',
             align: 'center',
         },
         {
             title: '供货农户',
-            dataIndex: 'name',
+            dataIndex: 'farmName',
             align: 'center',
         },
         {
             title: '分时集采单',
-            dataIndex: 'name',
+            dataIndex: 'collectSlaveOrderCount',
             align: 'center',
         },
         {
             title: '收货集配仓',
-            dataIndex: 'name',
+            dataIndex: 'storeName',
             align: 'center',
         },
         {
             title: '预计送货时间',
-            dataIndex: 'name',
+            dataIndex: 'expectTime',
             align: 'center',
         },
         {
             title: '订单发货时间',
-            dataIndex: 'name',
+            dataIndex: 'orderTime',
             align: 'center',
         },
         {
@@ -153,9 +118,12 @@ export default function Collect() {
                 style={{marginTop: 12}}
                 columns={columns}
                 rowKey={record => record.id}
-                dataSource={data}
-                pagination={pagination}
-                loading={loading}
+                dataSource={data.dataList}
+                pagination={{
+                    total: data.totalCount
+                }}
+                loading={tableLoading}
+                onChange={async (pagination, filters, sorter) => getCollectList(pagination)}
             />
             </div>
         )

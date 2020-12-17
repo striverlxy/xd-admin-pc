@@ -42,7 +42,7 @@ export default function Station() {
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
@@ -114,7 +114,7 @@ export default function Station() {
                     style={{marginTop: 12}}
                     columns={columns}
                     rowKey={record => record.id}
-                    dataSource={data}
+                    dataSource={data.dataList}
                     pagination={{
                         total: data.totalCount
                     }}

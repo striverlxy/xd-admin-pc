@@ -150,7 +150,7 @@ export default function Truck() {
                     style={{marginTop: 12}}
                     columns={columns}
                     rowKey={record => record.id}
-                    dataSource={data}
+                    dataSource={data.dataList}
                     pagination={{
                         total: data.totalCount
                     }}

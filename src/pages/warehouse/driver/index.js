@@ -49,7 +49,7 @@ export default function Driver() {
             pageSize: pagination.pageSize
         }
         setLoading(true)
-        let resp = await httpUtils.get('/admin/driver/list', params)
+        let resp = await httpUtils.get('/admin/driver/page', params)
         setData(resp)
         setLoading(false)
     }   
