@@ -8,12 +8,12 @@ export default class AreaSelect extends React.Component {
   };
 
   async componentWillMount() {
-      let resp = await httpUtils.post('/geo-service/china/province/list')
+      let resp = await httpUtils.get('/geo/province/list')
       if (resp) {
         let options = resp.map(r => {
             return {
-                value: r.province_no,
-                label: r.province,
+                value: r.code,
+                label: r.areaName,
                 labelType: 'province',
                 isLeaf: false
             }
@@ -36,27 +36,27 @@ export default class AreaSelect extends React.Component {
     let options = []
     if (targetOption.labelType == 'province') {
         let data = {
-            provinceNo: targetOption.value
+          provinceCode: targetOption.value
         }
-        let resp = await httpUtils.post('/geo-service/china/city/list', data)
+        let resp = await httpUtils.get('/geo/city/list', data)
         options = resp.map(r => {
             return {
-                value: r.city_no,
-                label: r.city,
+                value: r.code,
+                label: r.areaName,
                 labelType: 'city',
                 isLeaf: false
             }
         })
     } else if (targetOption.labelType == 'city') {
         let data = {
-            cityNo: targetOption.value
+          cityCode: targetOption.value
         }
-        let resp = await httpUtils.post('/geo-service/china/region/list', data)
+        let resp = await httpUtils.get('/geo/county/list', data)
         options = resp.map(r => {
             return {
-                value: r.region_no,
-                label: r.region,
-                labelType: 'region'
+                value: r.code,
+                label: r.areaName,
+                labelType: 'county'
             }
         })
     }

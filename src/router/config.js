@@ -225,6 +225,11 @@ const router = [
                                 component: lazy(() => import('../pages/system/adminUser'))
                             },
                             {
+                                path: '/system/organization',
+                                name: '组织管理',
+                                component: lazy(() => import('../pages/system/organization'))
+                            },
+                            {
                                 path: '/system',
                                 redirect: '/system/adminUser',
                                 hidden: true
