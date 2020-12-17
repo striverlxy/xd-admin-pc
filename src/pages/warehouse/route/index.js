@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List} from 'antd';
 import styles from './style.less'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,88 +22,47 @@ const blockStyle = {
 export default function RouteManage() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getRouteList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/route/list', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三04张三04张三04",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getRouteList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
-            align: 'center',
-        },
-        {
-            title: '路线ID',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '路线名称',
-            dataIndex: 'name',
+            dataIndex: 'routeName',
             align: 'center',
         },
         {
             title: '站点',
-            dataIndex: 'name',
+            dataIndex: 'siteCount',
             align: 'center',
         },
-        {
-            title: '站点顺序（默认送货顺序）',
-            dataIndex: 'name',
-            align: 'center',
-        },
+        // {
+        //     title: '站点顺序（默认送货顺序）',
+        //     dataIndex: 'name',
+        //     align: 'center',
+        // },
         {
             title: '路线状态',
-            dataIndex: 'name',
+            dataIndex: 'isOpen',
             align: 'center',
         },
         {
@@ -160,9 +120,12 @@ export default function RouteManage() {
                     style={{marginTop: 12}}
                     columns={columns}
                     rowKey={record => record.id}
-                    dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getRouteList(pagination)}
                 />
                 <Drawer
                     title={routeDrawerProps.title}

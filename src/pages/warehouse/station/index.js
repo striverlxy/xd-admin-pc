@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Space, Divider} from 'antd';
 import styles from './style.less'
 import { PlusOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,57 +22,21 @@ const blockStyle = {
 export default function Station() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getStationList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/site/page', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三04张三04张三04",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getStationList()
     }, [])
 
     const columns = [
@@ -81,23 +46,18 @@ export default function Station() {
             align: 'center',
         },
         {
-            title: '站点ID',
-            dataIndex: 'name',
-            align: 'center',
-        },
-        {
             title: '站点名称',
-            dataIndex: 'name',
+            dataIndex: 'siteName',
             align: 'center',
         },
         {
             title: '站点负责人',
-            dataIndex: 'name',
+            dataIndex: 'contactName',
             align: 'center',
         },
         {
             title: '联系方式',
-            dataIndex: 'name',
+            dataIndex: 'contactPhone',
             align: 'center',
         },
         {
@@ -107,24 +67,24 @@ export default function Station() {
         },
         {
             title: '配送半径（km）',
-            dataIndex: 'name',
+            dataIndex: 'serviceRadius',
             align: 'center',
         },
         {
             title: '自提时间',
-            dataIndex: 'name',
             align: 'center',
+            render: record => record.liftStartTime + "-" + record.liftEndTime
         },
         {
             title: '营业状态',
-            dataIndex: 'name',
+            dataIndex: 'busyStatus',
             align: 'center',
         },
-        {
-            title: '小程序认证',
-            dataIndex: 'name',
-            align: 'center',
-        },
+        // {
+        //     title: '小程序认证',
+        //     dataIndex: 'name',
+        //     align: 'center',
+        // },
         {
             title: '操作',
             align: 'center',
@@ -155,8 +115,11 @@ export default function Station() {
                     columns={columns}
                     rowKey={record => record.id}
                     dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getStationList(pagination)}
                 />
             </div>
         )

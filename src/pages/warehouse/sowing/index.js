@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Card, Space, Input} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,94 +22,58 @@ const blockStyle = {
 export default function Sowing() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getSowingList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/sowing/list', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三05张三",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getSowingList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '商品名称',
-            dataIndex: 'name',
+            dataIndex: 'spuName',
             align: 'center',
             width: 200
         },
         {
             title: '商品ID',
-            dataIndex: 'name',
+            dataIndex: 'spuNo',
             align: 'center',
         },
-        {
-            title: '规格',
-            dataIndex: 'name',
-            align: 'center',
-        },
+        // {
+        //     title: '规格',
+        //     dataIndex: 'name',
+        //     align: 'center',
+        // },
         {
             title: 'SKU编号',
-            dataIndex: 'name',
+            dataIndex: 'skuNo',
             align: 'center',
         },
         {
             title: '供货编号',
-            dataIndex: 'name',
+            dataIndex: 'provideNo',
             align: 'center',
         },
         {
             title: '商品数量',
-            dataIndex: 'name',
+            dataIndex: 'skuCount',
             align: 'center',
         },
     ];
@@ -122,8 +87,11 @@ export default function Sowing() {
                     columns={columns}
                     rowKey={record => record.id}
                     dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getSowingList(pagination)}
                 />
             </Card>
         )

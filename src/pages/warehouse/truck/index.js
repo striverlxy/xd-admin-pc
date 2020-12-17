@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Card, Space, Checkbox, Radio, Divider} from 'antd';
 import styles from './style.less'
 import { CopyOutlined, PlusOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -30,78 +31,42 @@ const gridStyle = {
 export default function Truck() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getTruckList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/vans/page', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三04张三04张三04",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getTruckList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '车牌号',
-            dataIndex: 'name',
+            dataIndex: 'vansNumber',
             align: 'center',
         },
         {
             title: '车型',
-            dataIndex: 'name',
+            dataIndex: 'vansType',
             align: 'center',
         },
         {
             title: '创建时间',
-            dataIndex: 'name',
+            dataIndex: 'createTime',
             align: 'center',
         },
         {
@@ -186,8 +151,11 @@ export default function Truck() {
                     columns={columns}
                     rowKey={record => record.id}
                     dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getTruckList(pagination)}
                 />
             </div>
         )

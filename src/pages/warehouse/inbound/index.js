@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Card, Space, Input} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,104 +22,68 @@ const blockStyle = {
 export default function Inbound() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getInboundList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/inbound/page', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三05张三",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getInboundList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '商品名称',
-            dataIndex: 'name',
+            dataIndex: 'spuName',
             align: 'center',
             width: 200
         },
         {
             title: '商品ID',
-            dataIndex: 'name',
+            dataIndex: 'spuNo',
             align: 'center',
         },
         {
             title: '规格',
-            dataIndex: 'name',
+            dataIndex: 'attrJson',
             align: 'center',
         },
         {
             title: 'SKU编号',
-            dataIndex: 'name',
+            dataIndex: 'skuNo',
             align: 'center',
         },
         {
             title: '供货编号',
-            dataIndex: 'name',
+            dataIndex: 'farmId',
             align: 'center',
         },
         {
             title: '供货箱码',
-            dataIndex: 'name',
+            dataIndex: 'boxNo',
             align: 'center',
         },
         {
             title: '供货数量',
-            dataIndex: 'name',
+            dataIndex: 'inboundNum',
             align: 'center',
         },
         {
             title: '状态',
-            dataIndex: 'name',
+            dataIndex: 'inboundStatus',
             align: 'center',
         }
     ];
@@ -131,9 +96,12 @@ export default function Inbound() {
                     style={{marginTop: 12}}
                     columns={columns}
                     rowKey={record => record.id}
-                    dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getInboundList(pagination)}
                 />
             </Card>
         )

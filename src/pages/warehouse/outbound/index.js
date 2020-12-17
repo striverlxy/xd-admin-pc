@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Descriptions, Select, Card, Space, Input, Checkbox, Divider, Typography} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 
@@ -21,89 +22,53 @@ const blockStyle = {
 export default function Outbound() {
 
     const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getOutboundList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/outboundOrder/page', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三05张三",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getOutboundList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '集配单单号',
-            dataIndex: 'name',
+            dataIndex: 'outboundOrderNo',
             align: 'center',
             width: 200
         },
         {
             title: '出库日期',
-            dataIndex: 'name',
+            dataIndex: 'outboundTime',
             align: 'center',
         },
         {
             title: '路线',
-            dataIndex: 'name',
+            dataIndex: 'routeId',
             align: 'center',
         },
         {
             title: '司机',
-            dataIndex: 'name',
+            dataIndex: 'driverId',
             align: 'center',
         },
         {
             title: '车辆',
-            dataIndex: 'name',
+            dataIndex: 'vansNumber',
             align: 'center',
         },
         {
@@ -113,12 +78,12 @@ export default function Outbound() {
         },
         {
             title: '出库（制单）时间',
-            dataIndex: 'name',
+            dataIndex: 'outboundTime',
             align: 'center',
         },
         {
             title: '状态',
-            dataIndex: 'name',
+            dataIndex: 'outboundStatus',
             align: 'center',
         },
         {
@@ -253,9 +218,12 @@ export default function Outbound() {
                     style={{marginTop: 12}}
                     columns={columns}
                     rowKey={record => record.id}
-                    dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getOutboundList(pagination)}
                 />
             </div>
         )
