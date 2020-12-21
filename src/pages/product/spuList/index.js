@@ -127,7 +127,7 @@ export default function SpuList() {
 
 
     const [spuDrawerProps, setSpuDrawerProps] = useState({
-        visible: true,
+        visible: false,
         title: '新增商品'
     })
     const [spuDrawerData, setSpuDrawerData] = useState({})

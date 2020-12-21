@@ -83,7 +83,7 @@ export default function RouteManage() {
             width: 300,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link >添加站点</Typography.Link>
+                    <Typography.Link onClick={() => handleRouteDrawerOpen(record)}>添加站点</Typography.Link>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
                     <Typography.Link>开启</Typography.Link>
@@ -102,21 +102,25 @@ export default function RouteManage() {
 
     const [routeDrawerProps, setRouteDrawerProps] = useState({
         visible: false,
-        title: '新增线路'
+        title: '编辑线路',
+        route: {}
     })
     const [routeDrawerData, setRouteDrawerData] = useState({})
     const [routeDrawerLoading, setRouteDrawerLoading] = useState(false)
-    const handleRouteDrawerOpen = (data = {}) => {
+    const handleRouteDrawerOpen = route => {
         setRouteDrawerProps({
             visible: true,
-            title: '新增线路'
+            title: '编辑线路',
+            route
         })
         getSiteList()
+        getRouteSitelist(route.id)
     }
     const handleRouteDrawerClose = () => {
         setRouteDrawerProps({
             visible: false,
-            title: '新增线路'
+            title: '编辑线路',
+            route: {}
         })
         setRouteDrawerData({})
         setRouteDrawerLoading(false)
@@ -124,8 +128,6 @@ export default function RouteManage() {
     const handleRouteDrawerOk = () => {
 
     }
-
-    const [addedRouteList, setAddedRouteList] = useState([2, 1])
 
 
     const [routeModalProps, setRouteModalProps] = useState({
@@ -157,6 +159,24 @@ export default function RouteManage() {
         getRouteList()
     }
 
+    const [selectedSite, setSelectedSite] = useState('')
+    const [routeSiteList, setRouteSiteList] = useState([])
+    const addSiteToRoute = async () => {
+        let data = {
+            routeId: routeDrawerProps.route.id,
+            siteId: selectedSite
+        }
+        await httpUtils.post('/admin/route/arrange/site', data)
+        message.success('添加成功')
+        getRouteSitelist(routeDrawerProps.route.id)
+    }
+    const getRouteSitelist = async routeId => {
+        let param = {
+            routeId: routeId
+        }
+        let resp = await httpUtils.get('/admin/site/list', param)
+        setRouteSiteList(resp)
+    }
 
     const randerTable = () => {
         return (
@@ -233,20 +253,6 @@ export default function RouteManage() {
                     onClose={handleRouteDrawerClose}
                     visible={routeDrawerProps.visible}
                     bodyStyle={{ paddingBottom: 80 }}
-                    footer={
-                        <div
-                            style={{
-                                textAlign: 'right',
-                            }}
-                        >
-                            <Button onClick={handleRouteDrawerOk} loading={routeDrawerLoading} type="primary" style={{ marginRight: 8 }}>
-                                保存
-                            </Button>
-                            <Button onClick={handleRouteDrawerClose} type="primary" danger>
-                                关闭
-                            </Button>
-                        </div>
-                    }
                 >
                     <Card size="small" style={{marginTop: 20}} title="站点路线">
                         <List
@@ -256,19 +262,19 @@ export default function RouteManage() {
                             footer={<div></div>}
                         >
                             {
-                                addedRouteList.map((item, index) => (
+                                routeSiteList.map((item, index) => (
                                     <List.Item
                                         actions={[
                                             <DeleteOutlined className={styles.delete_icon} />
                                         ]}
                                     >
-                                        <Input size="middle" disabled/>
+                                        <Input size="middle" value={item.siteName} key={index} disabled/>
                                     </List.Item>
                                 ))
                             }
                             <List.Item
                                 actions={[
-                                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={handleRouteDrawerOpen}>
+                                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={addSiteToRoute}>
                                         添加
                                     </Button>
                                 ]}
@@ -276,7 +282,8 @@ export default function RouteManage() {
                                 <Select 
                                     placeholder="请选择站点" 
                                     style={{ width: 200 }} 
-                                    onChange={e => {}}
+                                    onChange={e => setSelectedSite(e)}
+                                    value={selectedSite}
                                 >
                                     {
                                         siteList.map((item, index) => (

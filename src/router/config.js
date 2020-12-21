@@ -230,6 +230,11 @@ const router = [
                                 component: lazy(() => import('../pages/system/organization'))
                             },
                             {
+                                path: '/system/frontPermit',
+                                name: '前端页面权限',
+                                component: lazy(() => import('../pages/system/frontPermit'))
+                            },
+                            {
                                 path: '/system',
                                 redirect: '/system/adminUser',
                                 hidden: true

@@ -86,7 +86,7 @@ const Category = () => {
         setCateModalProps({
             visible: true,
             title: data.id ? '更新子类': '添加子类',
-            parentCate: data.id ? {} : (parentCate ? parentCate : rootCate)
+            parentCate: data.id ? {} : (parentCate.id ? parentCate : rootCate)
         })
         setCateModalData(data)
     }
