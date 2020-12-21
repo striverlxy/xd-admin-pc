@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Space, Button, Table, Divider, Typography, message, Modal, Form, Input, Popconfirm } from 'antd'
+import { Space, Button, Table, Divider, Typography, message, Modal, Form, Input, Popconfirm, Drawer } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
+import { useHistory } from 'react-router-dom';
 
 const borderRadius = { borderRadius: 4 }
 
@@ -15,6 +16,9 @@ const blockStyle = {
 }
 
 const Category = () => {
+
+
+    const history = useHistory()
 
     const [rootCate, setRootCate] = useState({})
     const [categotyList, setCategoryList] = useState([])
@@ -62,6 +66,7 @@ const Category = () => {
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link onClick={() => handleCateModalOpen({}, record)}>增加子类</Typography.Link>
+                    <Typography.Link onClick={() => history.push('/product/specifications', {cate: record})}>添加属性</Typography.Link>
                     <Typography.Link onClick={() => handleCateModalOpen(record, {})}>编辑</Typography.Link>
                     {
                         !(record.children && record.children.length > 0) && 

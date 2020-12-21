@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Space, Button, Table, Divider, Typography, message, Modal, Form, Input, Drawer, Popconfirm } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
+import { useLocation } from 'react-router-dom';
 
 const borderRadius = { borderRadius: 4 }
 
@@ -16,6 +17,8 @@ const blockStyle = {
 
 const Specifications = () => {
 
+    const { state } = useLocation()
+
     const [specificationList, setSpecificationList] = useState({})
     const [tableLoading, setTableLoading] = useState(false)
 
@@ -26,7 +29,8 @@ const Specifications = () => {
     const getSpecificationList = async (pagination = {pageSize: 10, current: 1}) => {
         let params = {
             pageNum: pagination.current,
-            pageSize: pagination.pageSize
+            pageSize: pagination.pageSize,
+            cateId: state.cate.id
         }
         setTableLoading(true)
         let resp = await httpUtils.get('/admin/item/attr/key/list', params)
@@ -92,6 +96,7 @@ const Specifications = () => {
     }
     const handleAttrKeyModalOk = async () => {
         let data = {
+            cateId: state.cate.id,
             keyName: attrKeyModalData.keyName,
             unit: attrKeyModalData.unit
         }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Input, DatePicker, Divider, Drawer, Form, Cascader} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Input, DatePicker, Divider, Drawer, Form, Cascader, Switch, message, Modal, Popconfirm} from 'antd';
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
 import PicturesWall from '../../../components/picturesWall'
 import httpUtils from '../../../utils/request'
@@ -15,6 +15,11 @@ const layout = {
     wrapperCol: { span: 24 },
 };
 
+const skuModalFormLayout = {
+    labelCol: { span: 6 },
+    wrapperCol: { span: 16 },
+};
+
 const blockStyle = {
     padding: 12,
     marginTop: 12,
@@ -26,13 +31,20 @@ const blockStyle = {
 
 export default function SpuList() {
 
-    const [data, setData] = useState([])
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 200
-    })
-    const [loading, setLoading] = useState(false)
+    const [spuList, setSpuList] = useState({})
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getSpuList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/item/spu/list', params)
+        setSpuList(resp)
+
+        setTableLoading(false)
+    }  
 
     const [cateOption, setCateOption] = useState([])
 
@@ -60,57 +72,46 @@ export default function SpuList() {
 
     useEffect(() => {
         getCateList()
+        getSpuList()
     }, [])
 
     const columns = [
         {
-            title: '序号',
-            dataIndex: 'name',
+            title: 'SPU编号',
+            dataIndex: 'spuNo',
             align: 'center',
         },
         {
             title: '商品名称',
-            dataIndex: 'name',
+            dataIndex: 'spuName',
             align: 'center',
-            width: 200
         },
         {
             title: '商品分类',
-            dataIndex: 'name',
+            dataIndex: 'cateId',
             align: 'center',
-            width: 160
         },
         {
             title: '商品状态',
-            dataIndex: 'name',
+            dataIndex: 'isPub',
             align: 'center',
-        },
-        {
-            title: 'SKU',
-            dataIndex: 'name',
-            align: 'center',
-            width: 120
-        },
-        {
-            title: '销售价（元）',
-            dataIndex: 'name',
-            align: 'center',
+            render: isPub => isPub ? '上架' : '下架'
         },
         {
             title: '划线价（元）',
-            dataIndex: 'name',
+            dataIndex: 'underlinePrice',
             align: 'center',
         },
-        {
-            title: '农户分账比例（%）',
-            dataIndex: 'name',
-            align: 'center',
-        },
-        {
-            title: '总销量',
-            dataIndex: 'name',
-            align: 'center',
-        },
+        // {
+        //     title: '农户分账比例（%）',
+        //     dataIndex: 'name',
+        //     align: 'center',
+        // },
+        // {
+        //     title: '总销量',
+        //     dataIndex: 'name',
+        //     align: 'center',
+        // },
         {
             title: '操作',
             align: 'center',
@@ -118,7 +119,8 @@ export default function SpuList() {
             width: 200,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link>编辑</Typography.Link>
+                    <Typography.Link onClick={() => handleSkuListDrawerOpen(record)}>商品列表</Typography.Link>
+                    <Typography.Link onClick={() => handleSpuDrawerOpen(record)}>编辑</Typography.Link>
                     <Typography.Link type="danger">删除</Typography.Link>
                 </Space>
             )
@@ -139,7 +141,6 @@ export default function SpuList() {
         if (data.id) {
             setSpuDrawerData(data)
         }
-        getAttrKeyListt()
     }
     const handleSpuDrawerClose = () => {
         setSpuDrawerProps({
@@ -148,329 +149,463 @@ export default function SpuList() {
         })
         setSpuDrawerData({})
     }
+    const handleSpuDrawerOk = async () => {
+        let data = {
+            cateId: spuDrawerData.cateId,
+            spuName: spuDrawerData.spuName,
+            underlinePrice: spuDrawerData.underlinePrice,
+            note: spuDrawerData.note,
+            bannerUrls: spuDrawerData.bannerUrls,
+            detailUrls: spuDrawerData.detailUrls,
+        }
+        await httpUtils.post('/admin/item/spu/add', data)
+        message.success('spu添加成功')
+        getSpuList()
+    }
 
-    const [choosedAttr, setChoosedAttr] = useState([])
+
+
+    const [cateAttrKeyList, setCateAttrKeyList] = useState([])
+    const getCateAttrKeyList = async cateId => {
+        let resp = await httpUtils.get('/admin/item/attr/key/list', {cateId: cateId, pageSize: 10000, pageNum: 1})
+        let attrKeyList = resp.dataList
+        for(let i = 0; i < attrKeyList.length; i++) {
+            let valueList = await getAttrValue(attrKeyList[i].id)
+            attrKeyList[i].valueList = valueList
+        }
+        setCateAttrKeyList(attrKeyList)
+        console.log(attrKeyList)
+    }
+    const getAttrValue = async keyId => {
+        let resp = await httpUtils.get(`/admin/item/attr/values/${keyId}`, {})
+        return resp
+    }
+
+    const [skuListDrawerProps, setSkuListDrawerProps] = useState({
+        visible: false,
+        spu: {}
+    })
     const [skuList, setSkuList] = useState([])
-    const [skuColumns, setSkuColumns] = useState([])
-
-    const [attrKeyList, setAttrKeyList] = useState([])
-    const getAttrKeyListt = async () => {
-        let params = {
-            pageNum: 1,
-            pageSize: 10000
-        }
-        let resp = await httpUtils.get('/admin/item/attr/key/list', params)
-        setAttrKeyList(resp.dataList)
-    }
-    // const getAttrValueList = async keyId => {
-    //     let resp = await httpUtils.get(`/admin/item/attr/values/${keyId}`)
-    //     return resp
-    // }
-    const [skuTableDataList, setSkuTableList] = useState([])
-    const handleChooseAttr = async e => {
-        let newList = []
-        
-        let column = []
-        for (let i = 0; i < e.length; i++) {
-            let idx = choosedAttr.findIndex(attr => attr.id == e[i])
-            let columnName = ''
-            if (idx > -1) {
-                newList.push(choosedAttr[idx])
-                columnName = choosedAttr[idx].name
-            } else {
-                let idx = attrKeyList.findIndex(key => key.id == e[i])
-                let valueList = await httpUtils.get(`/admin/item/attr/values/${e[i]}`)
-                newList.push({
-                    id: e[i],
-                    name: attrKeyList[idx].keyName,
-                    valueList,
-                    choosedValueIdList: []
-                })
-                columnName = attrKeyList[idx].keyName
-            }
-            column.push({
-                title: columnName,
-                align: 'center',
-                render: record => record.attr ? record.attr.find(a => a.keyName == columnName).valueName : ''
-            })
-        }
-        setChoosedAttr(newList)
-
-        column = column.concat([
-            {
-                title: '售卖价格',
-                align: 'center',
-                render: record => <Input style={{width: 100}} onChange={e => changeSkuListInputValue(e, 'salePrice', record.id)} type="number" value={record.salePrice}/>
-            },
-            {
-                title: '农户分润比例',
-                align: 'center',
-                render: record => <Input style={{width: 100}} onChange={e => changeSkuListInputValue(e, 'farmFeePercent', record.id)} type="number" value={record.farmFeePercent}/>
-            }
-        ])
-        //设置table头部
-        setSkuColumns(column)
-    }
-
-    const changeSkuListInputValue = (e, valueName, id) => {
-        const { value } = e.target
-        // let skus = skuList.slice()
-        // let index = skus.findIndex(sku => sku.id == id)
-        // console.log(index)
-        // skus[index][valueName] = value
-        // setSkuList(skus)
-        console.log(skuList)
-
-        
-        // setSkuTableList()
-    }
-
-    const changeAttrSelectValue = (e, index) => {
-        let newList = choosedAttr.slice()
-        newList[index].choosedValueIdList = []
-        e.map(item => {
-            let o = newList[index].valueList.find(attr => attr.id == item)
-            o.keyName = newList[index].name
-            newList[index].choosedValueIdList.push(o)
+    const handleSkuListDrawerOpen = spu => {
+        setSkuListDrawerProps({
+            visible: true,
+            spu
         })
-        setChoosedAttr(newList)
-        // console.log(newList)
-        //笛卡尔算法
-
-        let skuList = []
-        let totalAttrList = newList.map(item => item.choosedValueIdList)
-        var result = totalAttrList.reduce((last, current) => {
-            const array = [];
-            last.forEach((par1, index) => {
-                current.forEach((par2, idx) => {
-                    array.push(index + "_" + idx);
-                });
-            });
-            return array;
-        });
-        
-        result.map(item => {
-            let tmp = item.split('_')
-            let tmpAttr = []
-            for(let i = 0; i < tmp.length; i++) {
-                tmpAttr.push(totalAttrList[i][tmp[i]])
-            }
-            skuList.push({attr: tmpAttr, id: item, salePrice: 0, farmFeePercent: 0})
+        getSkuList(spu.spuNo)
+        getCateAttrKeyList(spu.cateId)
+    }
+    const handleSkuListDrawerClose = () => {
+        setSkuListDrawerProps({
+            visible: false,
+            spu: {}
         })
-        setSkuList(skuList)
+        setSkuList([])
     }
 
-    const saveSpu = () => {
-        console.log(skuList)
-        console.log(spuDrawerData)
+    const getSkuList = async spuNo => {
+        let resp = await httpUtils.get('/admin/item/sku/list', {spuNo: spuNo})
+        setSkuList(resp)
     }
 
-    const randerTable = () => {
-        return (
-            <div>
-                <Card size="small" title="数据检索" extra={
-                    <Space>
-                        <Button style={borderRadius} type="primary" size="middle" icon={<SearchOutlined />}>
-                                搜索
-                        </Button>
-                    </Space>
-                }>
-                    <Space>
-                        <Input 
-                            style={inputStyle} 
-                            size="middle" 
-                            placeholder="商品名称" 
-                            allowClear 
-                        />
-                        <Select
-                            size="middle"
-                            style={inputStyle}
-                            placeholder="商品分类"
-                            allowClear 
-                        >
-                            <Option value="1">农户1</Option>
-                            <Option value="2">农户2</Option>
-                        </Select>
-                        <Input 
-                            style={inputStyle} 
-                            size="middle" 
-                            placeholder="SKU编码" 
-                            allowClear 
-                        />
-                    </Space>
-                </Card>
-                <Space style={{marginTop: 10}}>
-                    <Button style={borderRadius} type="primary" size="middle">
-                        批量操作
-                    </Button>
-                    <Button style={borderRadius} type="primary" size="middle" onClick={handleSpuDrawerOpen}>
-                        添加商品
-                    </Button>
+    const skuColumns = [
+        {
+            title: '商品编号',
+            dataIndex: 'skuNo',
+            align: 'center',
+        },
+        {
+            title: '商品属性',
+            dataIndex: 'attrJson',
+            align: 'center',
+            render: attrJson => {
+                if (attrJson != null && attrJson != undefined && attrJson != '') {
+                    let attrList = JSON.parse(attrJson)
+                    return (
+                        <Space direction="vertical">
+                            {
+                                attrList.map((item, index) => {
+                                    return (
+                                        <span key={index}>{`${item.keyName}: ${item.valueName}${item.unit}`}</span>
+                                    )
+                                })
+                            }
+                        </Space>
+                    )
+                }
+            }
+        },
+        {
+            title: '售价',
+            dataIndex: 'salePrice',
+            align: 'center',
+        },
+        {
+            title: '农户分润比例',
+            dataIndex: 'farmFeePercent',
+            align: 'center',
+            render: farmFeePercent => farmFeePercent + '%'
+        },
+        {
+            title: '上架状态',
+            dataIndex: 'isPub',
+            align: 'center',
+            render: isPub => isPub ? '上架' : '下架'
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createTime',
+            align: 'center',
+        },
+        {
+            title: '操作',
+            align: 'center',
+            key: 'action',
+            width: 100,
+            render: (text, record) => (
+                <Space size={0} split={<Divider type="vertical" />}>
+                    <Typography.Link>编辑</Typography.Link>
+                    <Popconfirm placement="topLeft" title="确定删除该sku吗?" onConfirm={() => delSku(record.skuNo)} okText="确定" cancelText="取消">
+                        <Typography.Link type="danger">删除</Typography.Link>
+                    </Popconfirm>
                 </Space>
-                <Table
-                    size="small"
-                    bordered={true}
-                    style={{marginTop: 12}}
-                    columns={columns}
-                    rowKey={record => record.id}
-                    dataSource={data}
-                    pagination={pagination}
-                    loading={loading}
-                />
-                <Drawer
-                    title={spuDrawerProps.title}
-                    destroyOnClose
-                    width={720}
-                    onClose={handleSpuDrawerClose}
-                    visible={spuDrawerProps.visible}
-                    bodyStyle={{ paddingBottom: 80 }}
-                    footer={
-                        <div
-                        style={{
-                            textAlign: 'right',
-                        }}
-                        >
-                        <Button style={{ marginRight: 8 }} onClick={() => saveSpu()}>
-                            暂存不上架
-                        </Button>
-                        <Button type="primary">
-                            保存并上架
-                        </Button>
-                        </div>
-                    }
-                >
-                    <Form size="large" {...layout}>
-                        <Typography.Title level={4}>商品分类</Typography.Title>
-                        <Form.Item
-                            label="商品分类"
-                        >
-                            <Cascader 
-                                size="middle"
-                                options={cateOption} 
-                                onChange={e => {
-                                    setSpuDrawerData({
-                                        ...spuDrawerData,
-                                        cateId: e[e.length - 1]
-                                    })
-                                }} 
-                                placeholder="请选择商品分类" 
-                            />
-                        </Form.Item>
-                        <Typography.Title level={4}>基本信息</Typography.Title>
-                        <Form.Item
-                            label="商品名"
-                        >
-                            <Input  
-                                size="middle"  
-                                placeholder="请输入商品名" 
-                                onChange={e => {
-                                    const { value } = e.target
-                                    setSpuDrawerData({
-                                        ...spuDrawerData,
-                                        spuName: value
-                                    })
-                                }}
-                            />
-                        </Form.Item>
-                        <Form.Item
-                            label="简介"
-                        >
-                            <Input  
-                                size="middle"  
-                                placeholder="请输入简介" 
-                                onChange={e => {
-                                    const { value } = e.target
-                                    setSpuDrawerData({
-                                        ...spuDrawerData,
-                                        note: value
-                                    })
-                                }}
-                            />
-                        </Form.Item>
-                        <Form.Item
-                            label="商品图"
-                        >
-                            <PicturesWall saveFileList={e => 
-                                setSpuDrawerData({
-                                    ...spuDrawerData,
-                                    bannerUrls: e
-                                })
-                            } />
-                        </Form.Item>
-                        <Form.Item
-                            label="商品属性"
-                        >
-                            <Space direction="vertical" size={20}>
-                                <Select
-                                    mode="multiple"
-                                    size="middle"
-                                    placeholder="请选择商品属性" 
-                                    style={{ width: 200 }}
-                                    onChange={handleChooseAttr}
-                                >
-                                    {
-                                        attrKeyList.map((item, index) => (
-                                            <Select.Option value={item.id}>{item.keyName}</Select.Option>
-                                        ))
-                                    }
-                                </Select>
-                                <Space>
-                                    {
-                                        choosedAttr.map((item, index) => (
-                                            <Select
-                                                key={index}
-                                                mode="multiple"
-                                                size="middle"
-                                                placeholder={`请勾选${item.name}规格值`}
-                                                style={{ width: 200 }}
-                                                onChange={e => changeAttrSelectValue(e, index)}
-                                            >
-                                                {
-                                                    item.valueList.map((itm, idx) => (
-                                                        <Select.Option value={itm.id} key={idx}>{itm.valueName}</Select.Option>
-                                                    ))
-                                                }
-                                            </Select>
-                                        ))
-                                    }
-                                </Space>
-                                <Table
-                                    size="small"
-                                    bordered={true}
-                                    style={{marginTop: 12}}
-                                    columns={skuColumns}
-                                    rowKey={record => record.id}
-                                    dataSource={skuList}
-                                    pagination={false}
-                                />
-                            </Space>
-                        </Form.Item>
-                        <Form.Item
-                            label="商品详情"
-                        >
-                            <PicturesWall saveFileList={e => 
-                                setSpuDrawerData({
-                                    ...spuDrawerData,
-                                    detailUrls: e
-                                })
-                            } />
-                        </Form.Item>
-                    </Form>
-                </Drawer>
-            </div>
-        )
+            )
+        }
+    ]
+
+
+
+
+
+    const [skuModalProps, setSkuModalProps] = useState({
+        visible: false,
+        title: '新增商品'
+    })
+    const [skuModalData, setSkuModalData] = useState({})
+    const [skuModalLoading, setSkuModalLoading] = useState(false)
+    const handleSkuModalOpen = (data = {}) => {
+        setSkuModalProps({
+            visible: true,
+            title: data.id ? '更新商品': '新增商品'
+        })
+        setSkuModalData(data)
+    }
+    const handleSkuModalClose = () => {
+        setSkuModalProps({
+            visible: false,
+            title: '新增商品'
+        })
+        setSkuModalData({})
+        setSkuModalLoading(false)
+    }
+    const handleSkuModalOk = async () => {
+        let data = {
+            spuNo: skuListDrawerProps.spu.spuNo,
+            cateId: skuListDrawerProps.spu.cateId,
+            spuName: skuListDrawerProps.spu.spuName,
+            farmFeePercent: skuModalData.farmFeePercent,
+            salePrice: skuModalData.salePrice,
+            isPub: skuModalData.isPub
+        }
+
+        let attrList = []
+        //设置商品属性
+        cateAttrKeyList.map(item => {
+            if (item.selected) {
+                let valueId = item.selected
+
+                let pos = item.valueList.findIndex(value => value.id == item.selected)
+                let valueName = item.valueList[pos].valueName
+
+                let keyId = item.id
+                let unit = item.unit
+                let keyName = item.keyName
+                attrList.push({
+                    keyId,
+                    keyName,
+                    valueName,
+                    valueId,
+                    unit
+                })
+            }
+            
+        })
+        data.attrJson = JSON.stringify(attrList)
+
+        if (skuModalData.id) {
+            data.id = skuModalData.id
+        }
+
+        console.log(data)
+    
+        setSkuModalLoading(true)
+        await httpUtils.post(data.id ? '/admin/item/sku/update' : '/admin/item/sku/add', data)
+        message.success('操作成功')
+        handleSkuModalClose()
+        getSkuList(skuListDrawerProps.spu.spuNo)
+    }
+    
+    const delSku = async skuNo => {
+        await httpUtils.post(`/admin/item/sku/del/${skuNo}`)
+        message.success("删除成功")
+        getSkuList(skuListDrawerProps.spu.spuNo)
+    }
+
+    const setSkuAttrSelectValue = (e, index) => {
+        let attrKeyList = cateAttrKeyList.slice()
+        attrKeyList[index].selected = e
     }
     
     return (
         <div style={blockStyle}>
-            <Tabs>
-                <TabPane tab="已上架商品(1000)" key="1">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="待上架商品(10)" key="2">
-                    {randerTable()}
-                </TabPane>
-            </Tabs>
+            <Card size="small" title="数据检索" extra={
+                <Space>
+                    <Button style={borderRadius} type="primary" size="middle" icon={<SearchOutlined />}>
+                            搜索
+                    </Button>
+                </Space>
+            }>
+                <Space>
+                    <Input 
+                        style={inputStyle} 
+                        size="middle" 
+                        placeholder="商品名称" 
+                        allowClear 
+                    />
+                    <Select
+                        size="middle"
+                        style={inputStyle}
+                        placeholder="商品分类"
+                        allowClear 
+                    >
+                        <Option value="1">农户1</Option>
+                        <Option value="2">农户2</Option>
+                    </Select>
+                    <Input 
+                        style={inputStyle} 
+                        size="middle" 
+                        placeholder="SKU编码" 
+                        allowClear 
+                    />
+                </Space>
+            </Card>
+            <Space style={{marginTop: 10}}>
+                <Button style={borderRadius} type="primary" size="middle">
+                    批量操作
+                </Button>
+                <Button style={borderRadius} type="primary" size="middle" onClick={handleSpuDrawerOpen}>
+                    添加商品
+                </Button>
+            </Space>
+            <Table
+                size="small"
+                bordered={true}
+                style={{marginTop: 12}}
+                columns={columns}
+                rowKey={record => record.id}
+                dataSource={spuList.dataList}
+                pagination={{
+                    total: spuList.totalCount
+                }}
+                loading={tableLoading}
+                onChange={async (pagination, filters, sorter) => getSpuList(pagination)}
+            />
+            <Drawer
+                title={spuDrawerProps.title}
+                destroyOnClose
+                width={720}
+                onClose={handleSpuDrawerClose}
+                visible={spuDrawerProps.visible}
+                bodyStyle={{ paddingBottom: 80 }}
+                footer={
+                    <div
+                        style={{
+                            textAlign: 'right',
+                        }}
+                        >
+                        <Button style={{ marginRight: 8 }} onClick={handleSpuDrawerClose}>
+                            取消
+                        </Button>
+                        <Button type="primary" onClick={handleSpuDrawerOk}>
+                            保存
+                        </Button>
+                    </div>
+                }
+            >
+                <Form size="large" {...layout}>
+                    <Typography.Title level={4}>商品分类</Typography.Title>
+                    <Form.Item
+                        label="商品分类"
+                    >
+                        <Cascader 
+                            size="large"
+                            options={cateOption}
+                            onChange={e => {
+                                setSpuDrawerData({
+                                    ...spuDrawerData,
+                                    cateId: e[e.length - 1]
+                                })
+                            }} 
+                            placeholder="请选择商品分类" 
+                        />
+                    </Form.Item>
+                    <Typography.Title level={4}>基本信息</Typography.Title>
+                    <Form.Item
+                        label="商品名"
+                    >
+                        <Input  
+                            size="large"  
+                            placeholder="请输入商品名" 
+                            defaultValue={spuDrawerData.spuName}
+                            onChange={e => {
+                                const { value } = e.target
+                                setSpuDrawerData({
+                                    ...spuDrawerData,
+                                    spuName: value
+                                })
+                            }}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="简介"
+                    >
+                        <Input  
+                            size="large"  
+                            placeholder="请输入简介" 
+                            defaultValue={spuDrawerData.note}
+                            onChange={e => {
+                                const { value } = e.target
+                                setSpuDrawerData({
+                                    ...spuDrawerData,
+                                    note: value
+                                })
+                            }}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="商品图"
+                    >
+                        <PicturesWall saveFileList={e => 
+                            setSpuDrawerData({
+                                ...spuDrawerData,
+                                bannerUrls: e
+                            })
+                        } />
+                    </Form.Item>
+                    <Form.Item
+                        label="商品详情"
+                    >
+                        <PicturesWall saveFileList={e => 
+                            setSpuDrawerData({
+                                ...spuDrawerData,
+                                detailUrls: e
+                            })
+                        } />
+                    </Form.Item>
+                    <Form.Item
+                        label="上架状态"
+                    >
+                        <Switch checkedChildren="上架" unCheckedChildren="下架" defaultValue={spuDrawerData.isPub} />
+                    </Form.Item>
+                </Form>
+            </Drawer>
+            <Drawer
+                title={`【${skuListDrawerProps.spu.spuName}】的商品信息`}
+                destroyOnClose
+                width={1000}
+                onClose={handleSkuListDrawerClose}
+                visible={skuListDrawerProps.visible}
+                bodyStyle={{ paddingBottom: 80 }}
+            >
+                <Button style={borderRadius} type="primary" size="middle" onClick={() => handleSkuModalOpen()}>
+                    添加商品
+                </Button>
+                <Table
+                    size="small"
+                    bordered={true}
+                    style={{marginTop: 12}}
+                    columns={skuColumns}
+                    rowKey={record => record.id}
+                    dataSource={skuList}
+                    pagination={false}
+                    loading={tableLoading}
+                />
+                <Modal
+                    destroyOnClose
+                    title={skuModalProps.title}
+                    visible={skuModalProps.visible}
+                    onOk={handleSkuModalOk}
+                    confirmLoading={skuModalLoading}
+                    onCancel={handleSkuModalClose}
+                >
+                    <Form size="large" {...skuModalFormLayout}>
+                        {
+                            cateAttrKeyList.map((item, index) => (
+                                <Form.Item
+                                    key={index}
+                                    label={item.keyName}
+                                >
+                                    <Select placeholder="请选择规格值" onChange={e => setSkuAttrSelectValue(e, index)}>
+                                        {
+                                            item.valueList.map((itm, idx) => (
+                                                <Select.Option value={itm.id} key={idx}>{itm.valueName}</Select.Option>
+                                            ))
+                                        }
+                                    </Select>
+                                </Form.Item>
+                            ))
+                        }
+                        <Form.Item
+                            label="售价"
+                        >
+                            <Input  
+                                size="large"
+                                type="number"
+                                placeholder="请输入售价" 
+                                defaultValue={skuModalData.salePrice}
+                                onChange={e => {
+                                    const { value } = e.target
+                                    setSkuModalData({
+                                        ...skuModalData,
+                                        salePrice: value
+                                    })
+                                }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            label="农户分成比例"
+                        >
+                            <Input  
+                                size="large"
+                                type="number"
+                                placeholder="请输入农户分成比例" 
+                                defaultValue={skuModalData.farmFeePercent}
+                                onChange={e => {
+                                    const { value } = e.target
+                                    setSkuModalData({
+                                        ...skuModalData,
+                                        farmFeePercent: value
+                                    })
+                                }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            label="上架状态"
+                        >
+                            <Switch 
+                                checkedChildren="上架" 
+                                unCheckedChildren="下架" 
+                                defaultValue={skuModalData.isPub} 
+                                onChange={e => {
+                                    setSkuModalData({
+                                        ...skuModalData,
+                                        isPub: e ? true : false
+                                    })
+                                }} 
+                            />
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            </Drawer>
         </div>
     )
 }

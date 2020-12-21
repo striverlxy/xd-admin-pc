@@ -75,7 +75,8 @@ const router = [
                             {
                                 path: '/product/specifications',
                                 name: '商品规格',
-                                component: lazy(() => import('../pages/product/specifications'))
+                                component: lazy(() => import('../pages/product/specifications')),
+                                hidden: true
                             },
                             {
                                 path: '/product',
@@ -84,23 +85,23 @@ const router = [
                             },
                         ]
                     },
-                    {
-                        path: '/farmer',
-                        name: '农户管理',
-                        icon: <UserOutlined />,
-                        children: [
-                            {
-                                path: '/farmer/list',
-                                name: '农户列表',
-                                component: lazy(() => import('../pages/farmer/list'))
-                            },
-                            {
-                                path: '/farmer',
-                                redirect: '/farmer/list',
-                                hidden: true
-                            }
-                        ]
-                    },
+                    // {
+                    //     path: '/farmer',
+                    //     name: '农户管理',
+                    //     icon: <UserOutlined />,
+                    //     children: [
+                    //         {
+                    //             path: '/farmer/list',
+                    //             name: '农户列表',
+                    //             component: lazy(() => import('../pages/farmer/list'))
+                    //         },
+                    //         {
+                    //             path: '/farmer',
+                    //             redirect: '/farmer/list',
+                    //             hidden: true
+                    //         }
+                    //     ]
+                    // },
                     {
                         path: '/warehouse',
                         name: '仓库管理',
@@ -223,6 +224,11 @@ const router = [
                                 path: '/system/adminUser',
                                 name: '用户管理',
                                 component: lazy(() => import('../pages/system/adminUser'))
+                            },
+                            {
+                                path: '/system/role',
+                                name: '角色管理',
+                                component: lazy(() => import('../pages/system/role'))
                             },
                             {
                                 path: '/system/organization',
