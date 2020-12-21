@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Checkbox, Radio, Divider} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Checkbox, Radio, Divider, message, Modal, Form, Input, Popconfirm} from 'antd';
 import styles from './style.less'
 import { CopyOutlined, PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -97,8 +97,15 @@ export default function Driver() {
             key: 'action',
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link type="danger">删除</Typography.Link>
-                    <Typography.Link>详情</Typography.Link>
+                    <Typography.Link onClick={() => handleDriverModalOpen(record)}>详情</Typography.Link>
+                    {
+                        !record.isDel ? 
+                            <Popconfirm placement="topLeft" title="确定删除该司机吗?" onConfirm={() => delDriver(record.id)} okText="确定" cancelText="取消">
+                                <Typography.Link type="danger">删除</Typography.Link>
+                            </Popconfirm>
+                            :
+                            <Typography.Link>恢复</Typography.Link>
+                    }
                 </Space>
             )
         }
@@ -159,11 +166,58 @@ export default function Driver() {
         )
     }
 
+
+    const [driverModalProps, setDriverModalProps] = useState({
+        visible: false,
+        title: '新增司机'
+    })
+    const [driverModalData, setDriverModalData] = useState({})
+    const [driverModalLoading, setDriverModalLoading] = useState(false)
+    const handleDriverModalOpen = (data = {}) => {
+        setDriverModalProps({
+            visible: true,
+            title: data.id ? '更新司机信息': '新增司机'
+        })
+        setDriverModalData(data)
+    }
+    const handleDriverModalClose = () => {
+        setDriverModalProps({
+            visible: false,
+            title: '新增司机'
+        })
+        setDriverModalData({})
+        setDriverModalLoading(false)
+    }
+    const handleDriverModalOk = async () => {
+        let data = {
+            driverName: driverModalData.driverName,
+            phone: driverModalData.phone,
+            storeName: choosedStore.storeName,
+            storeId: choosedStore.id,
+        }
+        if (driverModalData.id) {
+            data.id = driverModalData.id
+        }
+    
+        setDriverModalLoading(true)
+        await httpUtils.post(data.id ? '/admin/driver/update' : '/admin/driver/add', data)
+        message.success('操作成功')
+        handleDriverModalClose()
+        getDriverList()
+    }
+    
+    const delDriver = async driverId => {
+        await httpUtils.post(`/admin/driver//del/${driverId}`)
+        message.success("删除成功")
+        getDriverList()
+    }
+
+
     const randerTable = () => {
         return (
             <div>
                 <Space>
-                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />}>
+                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={() => handleDriverModalOpen()}>
                         添加
                     </Button>
                 </Space>
@@ -179,6 +233,49 @@ export default function Driver() {
                     loading={loading}
                     onChange={async (pagination, filters, sorter) => getDriverList(pagination)}
                 />
+                <Modal
+                    destroyOnClose
+                    title={driverModalProps.title}
+                    visible={driverModalProps.visible}
+                    onOk={handleDriverModalOk}
+                    confirmLoading={driverModalLoading}
+                    onCancel={handleDriverModalClose}
+                >
+                    <Form size="large">
+                        <Form.Item
+                            label="司机姓名"
+                        >
+                            <Input 
+                                value={driverModalData.driverName} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setDriverModalData({
+                                        ...driverModalData,
+                                        driverName: value
+                                    })
+                                }}  
+                                placeholder="请输入司机姓名" />
+                        </Form.Item>
+                        <Form.Item
+                            label="手机号码"
+                        >
+                            <Input 
+                                value={driverModalData.phone} 
+                                size="large" 
+                                onChange={e => {
+                                    const { value } = e.target
+
+                                    setDriverModalData({
+                                        ...driverModalData,
+                                        phone: value
+                                    })
+                                }}  
+                                placeholder="请输入手机号码" />
+                        </Form.Item>
+                    </Form>
+                </Modal>
             </div>
         )
     }

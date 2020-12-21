@@ -46,36 +46,32 @@ export default function Sorting() {
             align: 'center',
         },
         {
+            title: '站点名称',
+            dataIndex: 'siteName',
+            align: 'center',
+        },
+        {
             title: '订单ID',
             dataIndex: 'masterOrderNo',
             align: 'center',
-            width: 200
+        },
+        {
+            title: '打包码',
+            dataIndex: 'packageNo',
+            align: 'center',
         },
         {
             title: '打包状态',
             dataIndex: 'packageStatus',
             align: 'center',
-        }
+            render: packageStatus => packageStatus == 1 ? '未打包' : packageStatus == 2 ? '打包' : ''
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createTime',
+            align: 'center',
+        },
     ];
-
-    const renderTable = () => {
-        return (
-            <Card size="small" title="xxx路线1" extra={<a href="#">More</a>}>
-                <Table
-                    bordered={true}
-                    style={{marginTop: 12}}
-                    columns={columns}
-                    rowKey={record => record.id}
-                    dataSource={data.dataList}
-                    pagination={{
-                        total: data.totalCount
-                    }}
-                    loading={tableLoading}
-                    onChange={async (pagination, filters, sorter) => getSortingList(pagination)}
-                />
-            </Card>
-        )
-    }
 
     const randerTableComponents = () => {
         return (
@@ -99,19 +95,18 @@ export default function Sorting() {
                         </Select>
                     </Space>
                 </Card>
-                <Space>
-                    <Tabs tabPosition='left' className={styles.tableTab}>
-                        <TabPane tab="xxx站点1（完成分拣）" key="1">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx站点2（未完成分拣）" key="2">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx站点3（完成分拣）" key="3">
-                            {renderTable()}
-                        </TabPane>
-                    </Tabs>
-                </Space>
+                <Table
+                    bordered={true}
+                    style={{marginTop: 12}}
+                    columns={columns}
+                    rowKey={record => record.id}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getSortingList(pagination)}
+                />
             </div>
         )
     }
@@ -127,13 +122,7 @@ export default function Sorting() {
                     </Select>
                 }
             >
-                <TabPane tab="今日分拣" key="1">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="昨日分拣" key="2">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="历史分拣" key="3">
+                <TabPane tab="分拣管理" key="1">
                     {randerTableComponents()}
                 </TabPane>
             </Tabs>

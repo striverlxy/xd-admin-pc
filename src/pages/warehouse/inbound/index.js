@@ -57,9 +57,25 @@ export default function Inbound() {
             align: 'center',
         },
         {
-            title: '规格',
+            title: '商品属性',
             dataIndex: 'attrJson',
             align: 'center',
+            render: attrJson => {
+                if (attrJson != null && attrJson != undefined && attrJson != '' && attrJson != '{}') {
+                    let attrList = JSON.parse(attrJson)
+                    return (
+                        <Space direction="vertical">
+                            {
+                                attrList.map((item, index) => {
+                                    return (
+                                        <span key={index}>{`${item.keyName}: ${item.valueName}${item.unit}`}</span>
+                                    )
+                                })
+                            }
+                        </Space>
+                    )
+                }
+            }
         },
         {
             title: 'SKU编号',
@@ -78,7 +94,7 @@ export default function Inbound() {
         },
         {
             title: '供货数量',
-            dataIndex: 'inboundNum',
+            dataIndex: 'realInboundNum',
             align: 'center',
         },
         {
@@ -87,25 +103,6 @@ export default function Inbound() {
             align: 'center',
         }
     ];
-
-    const renderTable = () => {
-        return (
-            <Card size="small" title="xxx1号农户" extra={<a href="#">More</a>}>
-                <Table
-                    bordered={true}
-                    style={{marginTop: 12}}
-                    columns={columns}
-                    rowKey={record => record.id}
-                    dataSource={data.dataList}
-                    pagination={{
-                        total: data.totalCount
-                    }}
-                    loading={tableLoading}
-                    onChange={async (pagination, filters, sorter) => getInboundList(pagination)}
-                />
-            </Card>
-        )
-    }
 
     const randerTableComponents = () => {
         return (
@@ -135,19 +132,18 @@ export default function Inbound() {
                         </Select>
                     </Space>
                 </Card>
-                <Space>
-                    <Tabs tabPosition='left' className={styles.tableTab}>
-                        <TabPane tab="xxx1号农户（未入库）" key="1">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx2号农户（部分入库）" key="2">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx3号农户（全部入库）" key="3">
-                            {renderTable()}
-                        </TabPane>
-                    </Tabs>
-                </Space>
+                <Table
+                    bordered={true}
+                    style={{marginTop: 12}}
+                    columns={columns}
+                    rowKey={record => record.id}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getInboundList(pagination)}
+                />
             </div>
         )
     }
@@ -163,13 +159,7 @@ export default function Inbound() {
                     </Select>
                 }
             >
-                <TabPane tab="今日入库" key="1">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="昨日入库" key="2">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="历史入库" key="3">
+                <TabPane tab="入库管理" key="1">
                     {randerTableComponents()}
                 </TabPane>
             </Tabs>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Input} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Divider, Drawer} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -56,11 +56,6 @@ export default function Collect() {
             align: 'center',
         },
         {
-            title: '分时集采单',
-            dataIndex: 'collectSlaveOrderCount',
-            align: 'center',
-        },
-        {
             title: '收货集配仓',
             dataIndex: 'storeName',
             align: 'center',
@@ -80,10 +75,96 @@ export default function Collect() {
             align: 'center',
             key: 'action',
             render: (text, record) => (
-                <Typography.Link>打印</Typography.Link>
+                <Space size={0} split={<Divider type="vertical" />}>
+                    <Typography.Link onClick={() => handleSlaveCollectDrawerOpen(record)}>分时集采单</Typography.Link>
+                    <Typography.Link>打印</Typography.Link>
+                </Space>
             )
         }
     ];
+
+    const [slaveCollectDrawerProps, setSlaveCollectDrawerProps] = useState({
+        visible: false,
+        masterCollect: {}
+    })
+    const [slaveCollectList, setSlaveCollectList] = useState([])
+    const [slaveCollectTableLoading, setSlaveCollectTableLoading] = useState(false)
+    const handleSlaveCollectDrawerOpen = masterCollect => {
+        setSlaveCollectDrawerProps({
+            visible: true,
+            masterCollect
+        })
+        getSlaveCollectList(masterCollect.collectMasterOrderNo)
+    }
+
+    const getSlaveCollectList = async collectMasterOrderNo => {
+        setSlaveCollectTableLoading(true)
+        let resp = await httpUtils.get(`/admin/order/collect/slaveByMaster/${collectMasterOrderNo}`)
+        setSlaveCollectList(resp)
+        setSlaveCollectTableLoading(false)
+    }
+
+    const handleSlaveCollectDrawerClose = () => {
+        setSlaveCollectDrawerProps({
+            visible: false,
+            masterCollect: {}
+        })
+        setSlaveCollectList([])
+    }
+
+    const slaveCollectColumns = [
+        {
+            title: '单号',
+            dataIndex: 'collectOrderNo',
+            align: 'center',
+        },
+        {
+            title: 'spu编号',
+            dataIndex: 'spuNo',
+            align: 'center',
+        },
+        {
+            title: 'spu名称',
+            dataIndex: 'spuName',
+            align: 'center',
+        },
+        {
+            title: 'sku编号',
+            dataIndex: 'skuNo',
+            align: 'center',
+        },
+        {
+            title: '商品属性',
+            dataIndex: 'attrJson',
+            align: 'center',
+            render: attrJson => {
+                if (attrJson != null && attrJson != undefined && attrJson != '') {
+                    let attrList = JSON.parse(attrJson)
+                    return (
+                        <Space direction="vertical">
+                            {
+                                attrList.map((item, index) => {
+                                    return (
+                                        <span key={index}>{`${item.keyName}: ${item.valueName}${item.unit}`}</span>
+                                    )
+                                })
+                            }
+                        </Space>
+                    )
+                }
+            }
+        },
+        {
+            title: 'sku数量',
+            dataIndex: 'skuNum',
+            align: 'center',
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createTime',
+            align: 'center',
+        },
+    ]
 
     const randerTable = () => {
         return (
@@ -95,36 +176,55 @@ export default function Collect() {
                         </Button>
                     </Space>
                 }>
-                <Space>
-                    <Input 
-                        style={inputStyle} 
-                        size="middle" 
-                        placeholder="集采单ID" 
-                        allowClear 
+                    <Space>
+                        <Input 
+                            style={inputStyle} 
+                            size="middle" 
+                            placeholder="集采单ID" 
+                            allowClear 
+                        />
+                        <Select
+                            size="middle"
+                            style={borderRadius}
+                            placeholder="请选择供货农户"
+                            allowClear 
+                        >
+                            <Option value="1">农户1</Option>
+                            <Option value="2">农户2</Option>
+                        </Select>
+                    </Space>
+                </Card>
+                <Table
+                    bordered={true}
+                    style={{marginTop: 12}}
+                    columns={columns}
+                    rowKey={record => record.id}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getCollectList(pagination)}
+                />
+                <Drawer
+                    title={`【${slaveCollectDrawerProps.masterCollect.collectMasterOrderNo}】的分时集采单`}
+                    destroyOnClose
+                    width={1000}
+                    onClose={handleSlaveCollectDrawerClose}
+                    visible={slaveCollectDrawerProps.visible}
+                    bodyStyle={{ paddingBottom: 80 }}
+                >
+                    <Table
+                        size="small"
+                        bordered={true}
+                        style={{marginTop: 12}}
+                        columns={slaveCollectColumns}
+                        rowKey={record => record.id}
+                        dataSource={slaveCollectList}
+                        pagination={false}
+                        loading={slaveCollectTableLoading}
                     />
-                    <Select
-                        size="middle"
-                        style={borderRadius}
-                        placeholder="请选择供货农户"
-                        allowClear 
-                    >
-                        <Option value="1">农户1</Option>
-                        <Option value="2">农户2</Option>
-                    </Select>
-                </Space>
-            </Card>
-            <Table
-                bordered={true}
-                style={{marginTop: 12}}
-                columns={columns}
-                rowKey={record => record.id}
-                dataSource={data.dataList}
-                pagination={{
-                    total: data.totalCount
-                }}
-                loading={tableLoading}
-                onChange={async (pagination, filters, sorter) => getCollectList(pagination)}
-            />
+                </Drawer>
             </div>
         )
     }
@@ -140,13 +240,7 @@ export default function Collect() {
                     </Select>
                 }
             >
-                <TabPane tab="今日集采单" key="1">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="昨日集采单" key="2">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="历史集采单" key="3">
+                <TabPane tab="集采单" key="1">
                     {randerTable()}
                 </TabPane>
             </Tabs>

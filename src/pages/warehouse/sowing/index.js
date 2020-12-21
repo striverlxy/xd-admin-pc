@@ -78,25 +78,6 @@ export default function Sowing() {
         },
     ];
 
-    const renderTable = () => {
-        return (
-            <Card size="small" title="xxx路线1" extra={<a href="#">More</a>}>
-                <Table
-                    bordered={true}
-                    style={{marginTop: 12}}
-                    columns={columns}
-                    rowKey={record => record.id}
-                    dataSource={data.dataList}
-                    pagination={{
-                        total: data.totalCount
-                    }}
-                    loading={tableLoading}
-                    onChange={async (pagination, filters, sorter) => getSowingList(pagination)}
-                />
-            </Card>
-        )
-    }
-
     const randerTableComponents = () => {
         return (
             <div>
@@ -119,19 +100,18 @@ export default function Sowing() {
                         </Select>
                     </Space>
                 </Card>
-                <Space>
-                    <Tabs tabPosition='left' className={styles.tableTab}>
-                        <TabPane tab="xxx路线1" key="1">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx路线2" key="2">
-                            {renderTable()}
-                        </TabPane>
-                        <TabPane tab="xxx路线3" key="3">
-                            {renderTable()}
-                        </TabPane>
-                    </Tabs>
-                </Space>
+                <Table
+                    bordered={true}
+                    style={{marginTop: 12}}
+                    columns={columns}
+                    rowKey={record => record.id}
+                    dataSource={data.dataList}
+                    pagination={{
+                        total: data.totalCount
+                    }}
+                    loading={tableLoading}
+                    onChange={async (pagination, filters, sorter) => getSowingList(pagination)}
+                />
             </div>
         )
     }
@@ -147,13 +127,7 @@ export default function Sowing() {
                     </Select>
                 }
             >
-                <TabPane tab="今日播种" key="1">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="昨日播种" key="2">
-                    {randerTableComponents()}
-                </TabPane>
-                <TabPane tab="历史播种" key="3">
+                <TabPane tab="播种管理" key="1">
                     {randerTableComponents()}
                 </TabPane>
             </Tabs>
