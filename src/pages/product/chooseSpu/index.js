@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Divider, Drawer, Tree, Image} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Divider, message, Tree, Image} from 'antd';
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
 
@@ -20,6 +20,17 @@ const blockStyle = {
     boxShadow: '0 2px 3px 0 rgba(0, 0, 0, .1)'
 }
 const ChooseSpu = () => {
+
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
+
 
     const [cateTree, setCateTree] = useState([])
     const getCateTree = async () => {
@@ -48,6 +59,7 @@ const ChooseSpu = () => {
 
     useEffect(() => {
         getCateTree()
+        getStoreList()
     }, [])
 
     const [choosedCate, setChoosedCate] = useState({})
@@ -86,7 +98,7 @@ const ChooseSpu = () => {
                     {
                         attrList.map((item, index) => {
                             return (
-                                <Typography.Link key={index}>{`${item.keyName}: ${item.valueName}${item.unit}`}</Typography.Link>
+                                <Typography.Link key={index} key={index}>{`${item.keyName}: ${item.valueName}${item.unit}`}</Typography.Link>
                             )
                         })
                     }
@@ -94,19 +106,32 @@ const ChooseSpu = () => {
             )
         }
     }
+
+    const [choosedSkuNo, setChoosedSkuNo] = useState('')
+    const addStoreSku = async spuNo => {
+        let data = {
+            spuNo: spuNo,
+            storeId: choosedStore.id,
+            storeName: choosedStore.storeName,
+            skuNo: choosedSkuNo,
+            cateId: choosedCate.key
+        }
+        await httpUtils.post('/admin/item/optional/store/add/sku', data)
+        message.success('添加成功')
+    }
+
     const renderChooseSku = spuNo => {
-        console.log(spuNo)
         let pos = spuList.findIndex(s => s.spuNo == spuNo)
         let renderBlock = [
             <Space>
-                <Select onFocus={() => getSkuList(spuNo)} style={inputStyle} placeholder="请点选商品">
+                <Select onFocus={() => getSkuList(spuNo)} style={inputStyle} placeholder="请点选商品" defaultValue={choosedSkuNo} onChange={e => setChoosedSkuNo(e)}>
                     {
                         (pos > -1 && spuList[pos].skuList) ? spuList[pos].skuList.map((item, index) => (
-                            <Select.Option value={item.skuNo}>{attrSpan(item.attrJson)}</Select.Option>
+                            <Select.Option value={item.skuNo} key={index}>{attrSpan(item.attrJson)}</Select.Option>
                         )) : <Select.Option></Select.Option>
                     }
                 </Select>
-                <Typography.Link>添加</Typography.Link>
+                <Typography.Link onClick={() => addStoreSku(spuNo)}>添加</Typography.Link>
             </Space>
         ]
         return renderBlock
@@ -126,6 +151,7 @@ const ChooseSpu = () => {
                         {
                             spuList.map((item, index) => (
                                 <Card
+                                    key={index}
                                     hoverable
                                     style={{ width: 240 }}
                                     cover={
@@ -154,10 +180,12 @@ const ChooseSpu = () => {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >

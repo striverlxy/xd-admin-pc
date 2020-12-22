@@ -68,9 +68,8 @@ export default function RouteManage() {
         },
         {
             title: '路线状态',
-            dataIndex: 'isOpen',
             align: 'center',
-            render: isOpen => <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultValue={isOpen} />
+            render: record => <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultValue={record.isOpen} onChange={e => oplRouteOpenStatus(record)} />
         },
         {
             title: '操作',
@@ -82,7 +81,7 @@ export default function RouteManage() {
                     <Typography.Link onClick={() => handleRouteDrawerOpen(record)}>添加站点</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
                     {
-                        record.isDel ? <Typography.Link type="secondary">恢复</Typography.Link>: <Typography.Link type="danger">删除</Typography.Link>
+                        record.isDel ? <Typography.Link type="success">恢复</Typography.Link>: <Typography.Link type="danger" onClick={() => delRoute(record.id)}>删除</Typography.Link>
                     }
                 </Space>
             )
@@ -101,8 +100,6 @@ export default function RouteManage() {
         title: '编辑线路',
         route: {}
     })
-    const [routeDrawerData, setRouteDrawerData] = useState({})
-    const [routeDrawerLoading, setRouteDrawerLoading] = useState(false)
     const handleRouteDrawerOpen = route => {
         setRouteDrawerProps({
             visible: true,
@@ -118,8 +115,6 @@ export default function RouteManage() {
             title: '编辑线路',
             route: {}
         })
-        setRouteDrawerData({})
-        setRouteDrawerLoading(false)
     }
 
     const [routeModalProps, setRouteModalProps] = useState({
@@ -148,6 +143,17 @@ export default function RouteManage() {
         await httpUtils.post(routeModalData.id ? '/admin/route/update': '/admin/route/add', routeModalData)
         message.success('操作完成')
         handleRouteModalClose()
+        getRouteList()
+    }
+    const oplRouteOpenStatus = async (route) => {
+        let isOpen = route.isOpen
+        await httpUtils.post(isOpen ? '/admin/route/route/close': '/admin/route/route/open', {routeId: route.id})
+        message.success('更新完成')
+        getRouteList()
+    }
+    const delRoute = async routeId => {
+        await httpUtils.post(`/admin/route/route/del/${routeId}`, {})
+        message.success('删除成功')
         getRouteList()
     }
 
