@@ -79,6 +79,16 @@ const router = [
                                 hidden: true
                             },
                             {
+                                path: '/product/storeSpuList',
+                                name: '集配仓商品库',
+                                component: lazy(() => import('../pages/product/storeSpuList')),
+                            },
+                            {
+                                path: '/product/chooseSpu',
+                                name: '选品仓库',
+                                component: lazy(() => import('../pages/product/chooseSpu')),
+                            },
+                            {
                                 path: '/product',
                                 redirect: '/product/spuList',
                                 hidden: true
