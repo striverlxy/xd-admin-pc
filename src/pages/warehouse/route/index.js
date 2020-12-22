@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List, Modal, message, Tooltip} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List, Modal, message, Switch} from 'antd';
 import styles from './style.less'
 import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined, EditOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -66,15 +66,11 @@ export default function RouteManage() {
             dataIndex: 'siteCount',
             align: 'center',
         },
-        // {
-        //     title: '站点顺序（默认送货顺序）',
-        //     dataIndex: 'name',
-        //     align: 'center',
-        // },
         {
             title: '路线状态',
             dataIndex: 'isOpen',
             align: 'center',
+            render: isOpen => <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultValue={isOpen} />
         },
         {
             title: '操作',
@@ -84,10 +80,10 @@ export default function RouteManage() {
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link onClick={() => handleRouteDrawerOpen(record)}>添加站点</Typography.Link>
-                    <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link>编辑</Typography.Link>
-                    <Typography.Link>开启</Typography.Link>
-                    <Typography.Link type="danger">停用</Typography.Link>
+                    {
+                        record.isDel ? <Typography.Link type="secondary">恢复</Typography.Link>: <Typography.Link type="danger">删除</Typography.Link>
+                    }
                 </Space>
             )
         }
@@ -298,8 +294,8 @@ export default function RouteManage() {
                                 <List.Item
                                     actions={[
                                             <div>
-                                                {index == 0 ? null : <ArrowUpOutlined className={styles.edit_icon} onClick={() => movePosition(index, index - 1)} />}
-                                                {index == (routeSiteList.length - 1) ? null : <ArrowDownOutlined className={styles.edit_icon} onClick={() => movePosition(index + 1, index)} />}
+                                                {index == 0 ? null : <ArrowUpOutlined className={styles.edit_icon} onClick={() => movePosition(index - 1, index)} />}
+                                                {index == (routeSiteList.length - 1) ? null : <ArrowDownOutlined className={styles.edit_icon} onClick={() => movePosition(index, index + 1)} />}
                                             </div>,
                                             <DeleteOutlined className={styles.delete_icon} onClick={() => removeRouteSite(index)} />
                                     ]}
