@@ -101,7 +101,7 @@ export default function Station() {
             title: '操作',
             align: 'center',
             key: 'action',
-            width: 300,
+            width: 150,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
@@ -288,10 +288,7 @@ export default function Station() {
                     </Select>
                 }
             >
-                <TabPane tab="全部站点" key="1">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="未营业站点" key="2">
+                <TabPane tab="站点管理" key="1">
                     {randerTable()}
                 </TabPane>
             </Tabs>
