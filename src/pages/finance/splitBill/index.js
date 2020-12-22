@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Space, Button, Table, Divider, Typography, Image, Tabs, Select } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const borderRadius = { borderRadius: 4 }
 const { TabPane } = Tabs
@@ -16,8 +17,23 @@ const blockStyle = {
 
 const SplitBill = () => {
 
-    const [billList, setBillList] = useState([])
+    const [billList, setBillList] = useState({})
     const [tableLoading, setTableLoading] = useState(false)
+
+    const getFeeTicketList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/feeTicket/page', params)
+        setBillList(resp)
+        setTableLoading(false)
+    }
+
+    useEffect(() => {
+        getFeeTicketList()
+    }, [])
 
     const columns = [
         {
@@ -27,17 +43,17 @@ const SplitBill = () => {
         },
         {
             title: '分账单id',
-            dataIndex: 'billCode',
+            dataIndex: 'ticketNo',
             align: 'center',
         },
         {
             title: '供货农户',
-            dataIndex: 'farmer',
+            dataIndex: 'farmName',
             align: 'center',
         },
         {
             title: '集配仓',
-            dataIndex: 'priority',
+            dataIndex: 'storeName',
             align: 'center',
         },
         {
@@ -69,21 +85,19 @@ const SplitBill = () => {
                     </Select>
                 }
             >
-                <TabPane tab="分账单" key="1">
-                    <Space>
-                        <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />}>
-                            新增专题页
-                        </Button>
-                    </Space>
+                <TabPane tab="管理分账单" key="1">
                     <Table
                         size="small"
                         bordered={true}
                         style={{marginTop: 12}}
                         columns={columns}
                         rowKey={record => record.id}
-                        dataSource={billList}
-                        pagination={false}
+                        dataSource={billList.dataList}
+                        pagination={{
+                            total: billList.totalCount
+                        }}
                         loading={tableLoading}
+                        onChange={async (pagination, filters, sorter) => getFeeTicketList(pagination)}
                     />
                 </TabPane>
             </Tabs>

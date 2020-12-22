@@ -95,23 +95,23 @@ const router = [
                             },
                         ]
                     },
-                    // {
-                    //     path: '/farmer',
-                    //     name: '农户管理',
-                    //     icon: <UserOutlined />,
-                    //     children: [
-                    //         {
-                    //             path: '/farmer/list',
-                    //             name: '农户列表',
-                    //             component: lazy(() => import('../pages/farmer/list'))
-                    //         },
-                    //         {
-                    //             path: '/farmer',
-                    //             redirect: '/farmer/list',
-                    //             hidden: true
-                    //         }
-                    //     ]
-                    // },
+                    {
+                        path: '/farmer',
+                        name: '农户管理',
+                        icon: <UserOutlined />,
+                        children: [
+                            {
+                                path: '/farmer/list',
+                                name: '农户列表',
+                                component: lazy(() => import('../pages/farmer/list'))
+                            },
+                            {
+                                path: '/farmer',
+                                redirect: '/farmer/list',
+                                hidden: true
+                            }
+                        ]
+                    },
                     {
                         path: '/warehouse',
                         name: '仓库管理',

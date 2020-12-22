@@ -48,7 +48,6 @@ const Role = () => {
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link onClick={() => handleRoleModalOpen(record)}>编辑</Typography.Link>
                     <Typography.Link onClick={() => handleFrontPermitModaOpen(record)}>分配前端权限</Typography.Link>
-                    <Typography.Link>分配资源</Typography.Link>
                     <Popconfirm placement="topLeft" title="确定删除该角色吗?" onConfirm={() => deleteRole(record.id)} okText="确定" cancelText="取消">
                         <Typography.Link type="danger">删除</Typography.Link>
                     </Popconfirm>
@@ -251,12 +250,8 @@ const Role = () => {
             >
                 <Tree
                     checkable
-                    // onExpand={onExpand}
-                    // expandedKeys={expandedKeys}
                     onCheck={onCheck}
                     checkedKeys={frontPermitList}
-                    // onSelect={onSelect}
-                    // selectedKeys={[6] || frontPermitList.map(item => item.id)}
                     treeData={allfrontPermitTree}
                 />
             </Modal>

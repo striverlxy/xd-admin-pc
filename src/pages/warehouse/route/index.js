@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List, Modal, message} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Drawer, Card, Form, Input, List, Modal, message, Tooltip} from 'antd';
 import styles from './style.less'
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined, EditOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
@@ -114,7 +114,7 @@ export default function RouteManage() {
             route
         })
         getSiteList()
-        getRouteSitelist(route.id)
+        getRouteSiteList(route.id)
     }
     const handleRouteDrawerClose = () => {
         setRouteDrawerProps({
@@ -125,10 +125,6 @@ export default function RouteManage() {
         setRouteDrawerData({})
         setRouteDrawerLoading(false)
     }
-    const handleRouteDrawerOk = () => {
-
-    }
-
 
     const [routeModalProps, setRouteModalProps] = useState({
         visible: false,
@@ -161,21 +157,43 @@ export default function RouteManage() {
 
     const [selectedSite, setSelectedSite] = useState('')
     const [routeSiteList, setRouteSiteList] = useState([])
-    const addSiteToRoute = async () => {
+    const arrangeSite = async () => {
         let data = {
             routeId: routeDrawerProps.route.id,
-            siteId: selectedSite
+            siteId: selectedSite,
+            storeId: routeDrawerProps.route.storeId
         }
         await httpUtils.post('/admin/route/arrange/site', data)
         message.success('添加成功')
-        getRouteSitelist(routeDrawerProps.route.id)
+        getRouteSiteList(routeDrawerProps.route.id)
     }
-    const getRouteSitelist = async routeId => {
+    const getRouteSiteList = async routeId => {
         let param = {
             routeId: routeId
         }
         let resp = await httpUtils.get('/admin/site/list', param)
         setRouteSiteList(resp)
+    }
+
+    const movePosition = async (up, down) => {
+        let data = {
+            upSiteId: routeSiteList[up].id,
+            downSiteId: routeSiteList[down].id,
+        }
+        await httpUtils.post('/admin/route/site/priority/update', data)
+        message.success('调整成功')
+        getRouteSiteList(routeDrawerProps.route.id)
+    }
+
+    const removeRouteSite = async index => {
+        let data = {
+            id: routeSiteList[index].id,
+            routeId: 0,
+            routeName: ''
+        }
+        await httpUtils.post('/admin/site/update', data)
+        message.success('删除成功')
+        getRouteSiteList(routeDrawerProps.route.id)
     }
 
     const randerTable = () => {
@@ -254,45 +272,42 @@ export default function RouteManage() {
                     visible={routeDrawerProps.visible}
                     bodyStyle={{ paddingBottom: 80 }}
                 >
-                    <Card size="small" style={{marginTop: 20}} title="站点路线">
-                        <List
-                            size="small"
-                            itemLayout="horizontal"
-                            // dataSource={addedRouteList}
-                            footer={<div></div>}
-                        >
-                            {
-                                routeSiteList.map((item, index) => (
-                                    <List.Item
-                                        actions={[
-                                            <DeleteOutlined className={styles.delete_icon} />
-                                        ]}
-                                    >
-                                        <Input size="middle" value={item.siteName} key={index} disabled/>
-                                    </List.Item>
-                                ))
-                            }
-                            <List.Item
-                                actions={[
-                                    <Button style={borderRadius} type="primary" size="middle" icon={<PlusOutlined />} onClick={addSiteToRoute}>
-                                        添加
-                                    </Button>
-                                ]}
-                            >
-                                <Select 
-                                    placeholder="请选择站点" 
-                                    style={{ width: 200 }} 
-                                    onChange={e => setSelectedSite(e)}
-                                    value={selectedSite}
-                                >
+                    <Card 
+                        size="small" 
+                        style={{marginTop: 20}} 
+                        title="站点路线"
+                        extra={
+                            <Space>
+                                <Select style={{width: 150}} placeholder="请选择站点" onChange={e => setSelectedSite(e)}>
                                     {
                                         siteList.map((item, index) => (
-                                            <Select.Option value={item.id}>{item.siteName}</Select.Option>
+                                            <Select.Option value={item.id} key={index}>{item.siteName}</Select.Option>
                                         ))
                                     }
                                 </Select>
-                            </List.Item>
-                        </List>
+                                <Button type="primary" onClick={() => arrangeSite()}>添加</Button>
+                            </Space>
+                        }
+                    >
+                        <List
+                            size="small"
+                            itemLayout="horizontal"
+                            dataSource={routeSiteList}
+                            footer={<div></div>}
+                            renderItem={(item, index) => (
+                                <List.Item
+                                    actions={[
+                                            <div>
+                                                {index == 0 ? null : <ArrowUpOutlined className={styles.edit_icon} onClick={() => movePosition(index, index - 1)} />}
+                                                {index == (routeSiteList.length - 1) ? null : <ArrowDownOutlined className={styles.edit_icon} onClick={() => movePosition(index + 1, index)} />}
+                                            </div>,
+                                            <DeleteOutlined className={styles.delete_icon} onClick={() => removeRouteSite(index)} />
+                                    ]}
+                                >
+                                    {item.siteName}
+                                </List.Item>
+                            )}
+                        />
                     </Card>
                 </Drawer>
             </div>
@@ -312,10 +327,7 @@ export default function RouteManage() {
                     </Select>
                 }
             >
-                <TabPane tab="全部线路" key="1">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="已停用线路" key="2">
+                <TabPane tab="线路管理" key="1">
                     {randerTable()}
                 </TabPane>
             </Tabs>
