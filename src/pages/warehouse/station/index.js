@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider, Modal, Form, Input, message} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Modal, Form, Input, message, Switch} from 'antd';
 import styles from './style.less'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -94,14 +94,9 @@ export default function Station() {
         },
         {
             title: '营业状态',
-            dataIndex: 'busyStatus',
             align: 'center',
+            render: record => <Switch checkedChildren="营业" unCheckedChildren="未营业" defaultValue={record.busyStatus == 0 ? false : true} />
         },
-        // {
-        //     title: '小程序认证',
-        //     dataIndex: 'name',
-        //     align: 'center',
-        // },
         {
             title: '操作',
             align: 'center',
@@ -111,8 +106,6 @@ export default function Station() {
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link type="danger">删除</Typography.Link>
                     <Typography.Link onClick={() => handleSiteModalOpen(record)}>编辑</Typography.Link>
-                    <Typography.Link>营业</Typography.Link>
-                    <Typography.Link type="danger">停业</Typography.Link>
                 </Space>
             )
         }
