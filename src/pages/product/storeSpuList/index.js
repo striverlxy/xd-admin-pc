@@ -20,6 +20,16 @@ const blockStyle = {
 
 export default function StoreSpuList() {
 
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
+
     const [data, setData] = useState([])
     const [tableLoading, setTableLoading] = useState(false)
 
@@ -36,17 +46,18 @@ export default function StoreSpuList() {
 
     useEffect(() => {
         getStoreSpuList()
+        getStoreList()
     }, [])
 
     const columns = [
         {
-            title: '序号',
-            dataIndex: 'id',
+            title: 'spu名称',
+            dataIndex: 'spuName',
             align: 'center',
         },
         {
             title: '商品分类',
-            dataIndex: 'cateId',
+            dataIndex: 'cateName',
             align: 'center',
         },
         {
@@ -69,26 +80,27 @@ export default function StoreSpuList() {
 
     const [skuListDrawerProps, setSkuListDrawerProps] = useState({
         visible: false,
-        spu: {}
+        storeSpu: {}
     })
     const [skuList, setSkuList] = useState([])
-    const handleSkuListDrawerOpen = spu => {
+    const handleSkuListDrawerOpen = storeSpu => {
         setSkuListDrawerProps({
             visible: true,
-            spu
+            storeSpu
         })
-        getSkuList(spu.spuNo)
+        setSkuList(JSON.parse(storeSpu.skuDetail))
+        // getSkuList(storeSpu.storeId)
     }
     const handleSkuListDrawerClose = () => {
         setSkuListDrawerProps({
             visible: false,
-            spu: {}
+            storeSpu: {}
         })
         setSkuList([])
     }
 
-    const getSkuList = async spuNo => {
-        let resp = await httpUtils.get('/admin/item/sku/list', {spuNo: spuNo})
+    const getSkuList = async storeId => {
+        let resp = await httpUtils.get('/admin/item/optional/store/sku/farms', {storeId: storeId})
         setSkuList(resp)
     }
 
@@ -137,27 +149,33 @@ export default function StoreSpuList() {
             render: isPub => isPub ? '上架' : '下架'
         },
         {
-            title: '创建时间',
-            dataIndex: 'createTime',
-            align: 'center',
-        },
-        {
             title: '操作',
             align: 'center',
             key: 'action',
-            width: 100,
+            width: 150,
             render: (text, record) => (
-                <Popconfirm placement="topLeft" title="确定删除该sku吗?" onConfirm={() => delSku(record.skuNo)} okText="确定" cancelText="取消">
-                    <Typography.Link type="danger">删除</Typography.Link>
-                </Popconfirm>
+                <Space size={0} split={<Divider type="vertical" />}>
+                    <Typography.Link onClick={() => console.log()}>供货农场</Typography.Link>
+                    <Popconfirm placement="topLeft" title="确定删除该sku吗?" onConfirm={() => delSku(record)} okText="确定" cancelText="取消">
+                        <Typography.Link type="danger">删除</Typography.Link>
+                    </Popconfirm>
+                </Space>
             )
         }
     ]
 
-    const delSku = async skuNo => {
-        await httpUtils.post(`/admin/item/sku/del/${skuNo}`)
+    const delSku = async sku => {
+        let data = {
+            id: sku.id,
+            skuNo: sku.skuNo
+        }
+        await httpUtils.post(`/admin/item/optional/store/del/sku`, data)
         message.success("删除成功")
-        getSkuList(skuListDrawerProps.spu.spuNo)
+        //兼容
+        let skus = skuList.slice()
+        skus.splice(skus.findIndex(s => s.id == sku.id), 1)
+        setSkuList(skus)
+        getStoreSpuList()
     }
 
     const randerTableComponents = () => {
@@ -202,7 +220,7 @@ export default function StoreSpuList() {
                     onChange={async (pagination, filters, sorter) => getStoreSpuList(pagination)}
                 />
                 <Drawer
-                    title={`【${skuListDrawerProps.spu.spuName}】的商品信息`}
+                    title={`【${skuListDrawerProps.storeSpu.spuName}】的商品信息`}
                     destroyOnClose
                     width={1000}
                     onClose={handleSkuListDrawerClose}
@@ -228,10 +246,12 @@ export default function StoreSpuList() {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >

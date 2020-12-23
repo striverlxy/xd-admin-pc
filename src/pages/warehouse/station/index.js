@@ -95,7 +95,7 @@ export default function Station() {
         {
             title: '营业状态',
             align: 'center',
-            render: record => <Switch checkedChildren="营业" unCheckedChildren="未营业" defaultValue={record.busyStatus == 0 ? false : true} />
+            render: record => <Switch checkedChildren="营业" unCheckedChildren="未营业" checked={record.busyStatus} />
         },
         {
             title: '操作',

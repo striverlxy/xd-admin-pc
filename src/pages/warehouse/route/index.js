@@ -69,7 +69,7 @@ export default function RouteManage() {
         {
             title: '路线状态',
             align: 'center',
-            render: record => <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultValue={record.isOpen} onChange={e => oplRouteOpenStatus(record)} />
+            render: record => <Switch checkedChildren="开启" unCheckedChildren="关闭" checked={record.isOpen} onChange={e => oplRouteOpenStatus(record)} />
         },
         {
             title: '操作',
