@@ -3,6 +3,7 @@ import { Tabs, Button, Table, Typography, Select, Card, Space, Checkbox, Radio, 
 import styles from './style.less'
 import { CopyOutlined, PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
+import { getWeekDayList } from '../../../utils/data'
 
 const { Option } = Select;
 
@@ -45,25 +46,41 @@ export default function Truck() {
         }
     }
 
-
     const [data, setData] = useState([])
     const [tableLoading, setTableLoading] = useState(false)
 
     const getTruckList = async (pagination = {pageSize: 10, current: 1}) => {
         let params = {
             pageNum: pagination.current,
-            pageSize: pagination.pageSize
+            pageSize: pagination.pageSize,
         }
         setTableLoading(true)
-        let resp = await httpUtils.get('/admin/vans/page', params)
+        let resp = await truckWebApi(params)
         setData(resp)
         setTableLoading(false)
     }
 
+    const truckWebApi = async params => {
+        params.storeId = choosedStore.id
+        return await httpUtils.get('/admin/vans/page', params)
+    }
+
     useEffect(() => {
-        getTruckList()
         getStoreList()
     }, [])
+
+    useEffect(() => {
+        if (choosedStore.id) {
+            getTruckList()
+            getAllTruckList()
+            getTruckScheduleList(0)
+        }
+    }, [choosedStore])
+
+    const [weekDay, setWeekDay] = useState({
+        offset: 0,
+        list: []
+    })
 
     const columns = [
         {
@@ -106,30 +123,163 @@ export default function Truck() {
         }
     ];
 
+    const [allTruckList, setAllTruckList] = useState([])
+    const getAllTruckList = async () => {
+        let params = {
+            pageNum: 1,
+            pageSize: 10000,
+        }
+        let resp = await truckWebApi(params)
+        setAllTruckList(resp.dataList)
+    }
+
+    const [truckScheduleMap, setTruckScheduleMap] = useState([])
+    const getTruckScheduleList = async (offset = weekDay.offset) => {
+
+        let list = getWeekDayList(offset)
+        setWeekDay({
+            offset,
+            list
+        })
+
+        let data = {
+            storeId: choosedStore.id,
+            scheduleStartDate: list[0],
+            scheduleEndDate: list[6]
+        }
+        let resp = await httpUtils.get('/admin/vans/schedule/list', data)
+        setTruckScheduleMap(resp)
+    }
+
+    const checkDay = async (index, weekDayTime = null) => {
+
+        let truck = allTruckList[index]
+
+        //查看当前是否已选中
+        let pos = -1
+        if (truckScheduleMap[truck.id]) {
+            pos = truckScheduleMap[truck.id].findIndex(time => time.scheduleDate == weekDayTime)
+        }
+
+        if (pos == -1) {
+            let data = {
+                vansId: truck.id,
+                vansNumber: truck.vansNumber,
+                storeId: choosedStore.id
+            }
+            if (weekDayTime) {
+                data.scheduleDates = [weekDayTime]
+            } else {
+                if (truckScheduleMap[truck.id]) {
+                    data.scheduleDates = weekDay.list.filter(day => truckScheduleMap[truck.id].findIndex(time => time.scheduleDate == day) == -1)
+                } else {
+                    data.scheduleDates = weekDay.list
+                }
+            }
+    
+            await httpUtils.post('/admin/vans/schedule/add', data)
+        } else {
+            await httpUtils.post(`/admin/vans/schedule/del/${truckScheduleMap[truck.id][pos].id}`, {})
+        }
+
+        message.success('设置成功')
+        getTruckScheduleList()
+    }
+
+    const copyPreSchedule = async () => {
+        //获取当前offset
+        let offset = weekDay.offset
+        //依此offset反推出上周周一日期
+        let preOffset = offset - 7
+        let list = getWeekDayList(preOffset)
+        let data = {
+            storeId: choosedStore.id, 
+            preStartDate: list[0]
+        }
+        await httpUtils.post('/admin/vans/schedule/copy', data)
+        message.success('设置成功')
+        getTruckScheduleList()
+    }
+
+    // const renderSchedulingCard = () => {
+    //     return (
+    //         <Card 
+    //             size="small"
+    //             title="（2020-10-01 ～ 2020-10-07）货车排班表" 
+    //             extra={
+    //                 <Space size={60}>
+    //                     <Radio.Group>
+    //                         <Radio.Button value="large">上一周</Radio.Button>
+    //                         <Radio.Button value="default">当前周</Radio.Button>
+    //                         <Radio.Button value="small">下一周</Radio.Button>
+    //                     </Radio.Group>
+    //                     <Button icon={<CopyOutlined />} type="primary">复制上周排班</Button>
+    //                 </Space>
+    //             }
+    //         >
+    //             <Card.Grid hoverable={false} style={firstGridStyle}></Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/1</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/2</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/3</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/4</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/5</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/6</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>10/7</Card.Grid>
+
+    //             <Card.Grid hoverable={false} style={firstGridStyle}>货车车牌（车型）</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周一</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周二</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周三</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周四</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周五</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周六</Card.Grid>
+    //             <Card.Grid hoverable={false} style={gridStyle}>周日</Card.Grid>
+
+    //             <Card.Grid style={firstGridStyle}>
+    //                 <Space size={20}>
+    //                     <Select style={{width: 100}}>
+    //                         <Select.Option>货车1</Select.Option>
+    //                         <Select.Option>货车2</Select.Option>
+    //                         <Select.Option>货车3</Select.Option>
+    //                     </Select>
+    //                     <Checkbox size="small">全可用</Checkbox>
+    //                 </Space>
+    //             </Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+    //         </Card>
+    //     )
+    // }
+
     const renderSchedulingCard = () => {
         return (
             <Card 
                 size="small"
-                title="（2020-10-01 ～ 2020-10-07）货车排班表" 
+                title={`（${weekDay.list.length > 0 ? weekDay.list[0]: ''} ～ ${weekDay.list.length > 0 ? weekDay.list[weekDay.list.length - 1]: ''}）货车排班表`}
                 extra={
                     <Space size={60}>
                         <Radio.Group>
-                            <Radio.Button value="large">上一周</Radio.Button>
-                            <Radio.Button value="default">当前周</Radio.Button>
-                            <Radio.Button value="small">下一周</Radio.Button>
+                            <Radio.Button value="large" onClick={() => getTruckScheduleList(weekDay.offset - 7)}>上一周</Radio.Button>
+                            <Radio.Button value="default" onClick={() => getTruckScheduleList(0)}>当前周</Radio.Button>
+                            <Radio.Button value="small" onClick={() => getTruckScheduleList(weekDay.offset + 7)}>下一周</Radio.Button>
                         </Radio.Group>
-                        <Button icon={<CopyOutlined />} type="primary">复制上周排班</Button>
+                        <Button icon={<CopyOutlined />} type="primary" onClick={() => copyPreSchedule()}>复制上周排班</Button>
                     </Space>
                 }
             >
                 <Card.Grid hoverable={false} style={firstGridStyle}></Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/1</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/2</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/3</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/4</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/5</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/6</Card.Grid>
-                <Card.Grid hoverable={false} style={gridStyle}>10/7</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[0]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[1]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[2]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[3]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[4]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[5]: ''}</Card.Grid>
+                <Card.Grid hoverable={false} style={gridStyle}>{weekDay.list.length > 0 ? weekDay.list[6]: ''}</Card.Grid>
 
                 <Card.Grid hoverable={false} style={firstGridStyle}>货车车牌（车型）</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>周一</Card.Grid>
@@ -140,23 +290,23 @@ export default function Truck() {
                 <Card.Grid hoverable={false} style={gridStyle}>周六</Card.Grid>
                 <Card.Grid hoverable={false} style={gridStyle}>周日</Card.Grid>
 
-                <Card.Grid style={firstGridStyle}>
-                    <Space size={20}>
-                        <Select style={{width: 100}}>
-                            <Select.Option>货车1</Select.Option>
-                            <Select.Option>货车2</Select.Option>
-                            <Select.Option>货车3</Select.Option>
-                        </Select>
-                        <Checkbox size="small">全可用</Checkbox>
-                    </Space>
-                </Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-                <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
+                {
+                    allTruckList.map((item, index) => (
+                        <div key={index}>
+                            <Card.Grid style={firstGridStyle}>
+                                <Space size={20}>
+                                    {item.vansNumber}
+                                    <Checkbox size="small" onClick={() => checkDay(index)} checked={truckScheduleMap[item.id] && truckScheduleMap[item.id].length == 7}>全可用</Checkbox>
+                                </Space>
+                            </Card.Grid>
+                            {
+                                weekDay.list.map((itm, idx) => (
+                                    <Card.Grid style={gridStyle} key={idx}><Checkbox size="small" checked={truckScheduleMap[item.id] && truckScheduleMap[item.id].findIndex(time => time.scheduleDate == itm) > -1}  onClick={() => checkDay(index, itm)}>可用</Checkbox></Card.Grid>
+                                ))
+                            }
+                        </div>
+                    ))
+                }
             </Card>
         )
     }

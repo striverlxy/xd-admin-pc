@@ -38,20 +38,17 @@ export default function Driver() {
         setStoreList(resp)
         if (resp.length > 0) {
             setChoosedStore(resp[0])
-            getDriverScheduleList(0, resp[0].id)
-            getDriverList({pageSize: 10, current: 1}, resp[0].id)
-            getAllDriverList(resp[0].id)
         }
     }
 
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
 
-    const getDriverList = async (pagination = {pageSize: 10, current: 1}, storeId = choosedStore.id) => {
+    const getDriverList = async (pagination = {pageSize: 10, current: 1}) => {
         let params = {
             pageNum: pagination.current,
             pageSize: pagination.pageSize,
-            storeId
+            storeId: choosedStore.id
         }
         setLoading(true)
         let resp = await driverWebApi(params)
@@ -66,6 +63,14 @@ export default function Driver() {
     useEffect(() => {
         getStoreList()
     }, [])
+
+    useEffect(() => {
+        if (choosedStore.id) {
+            getDriverScheduleList(0)
+            getDriverList()
+            getAllDriverList()
+        }
+    }, [choosedStore])
 
     const [weekDay, setWeekDay] = useState({
         offset: 0,
@@ -126,26 +131,26 @@ export default function Driver() {
 
 
     const [allDriverList, setAllDriverList] = useState([])
-    const getAllDriverList = async storeId => {
+    const getAllDriverList = async () => {
         let params = {
             pageNum: 1,
             pageSize: 10000,
-            storeId
+            storeId: choosedStore.id
         }
         let resp = await driverWebApi(params)
         setAllDriverList(resp.dataList)
     }
     const [driverScheduleMap, setDriverScheduleMap] = useState([])
-    const getDriverScheduleList = async (offset = weekDay.offset, storeId = choosedStore.id) => {
+    const getDriverScheduleList = async (offset = weekDay.offset) => {
 
         let list = getWeekDayList(offset)
         setWeekDay({
-            offset: offset,
+            offset,
             list
         })
 
         let data = {
-            storeId: storeId,
+            storeId: choosedStore.id,
             scheduleStartDate: list[0],
             scheduleEndDate: list[6]
         }
