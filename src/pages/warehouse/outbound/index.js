@@ -69,7 +69,6 @@ export default function Outbound() {
             title: '集配单单号',
             dataIndex: 'outboundOrderNo',
             align: 'center',
-            width: 200
         },
         {
             title: '出库日期',
@@ -105,6 +104,7 @@ export default function Outbound() {
             title: '状态',
             dataIndex: 'outboundStatus',
             align: 'center',
+            render: outboundStatus => outboundStatus == 0 ? '未装车' : outboundStatus == 1 ? '已装车': outboundStatus == 2 ? '已作废': ''
         },
         {
             title: '操作',
@@ -114,7 +114,9 @@ export default function Outbound() {
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link>打印</Typography.Link>
-                    <Typography.Link type="danger">作废</Typography.Link>
+                    {
+                        record.outboundStatus != 2 && <Typography.Link type="danger" onClick={() => dropOutbound(record.id)}>作废</Typography.Link>
+                    }
                     <Typography.Link>详情</Typography.Link>
                 </Space>
             )
@@ -154,7 +156,18 @@ export default function Outbound() {
         setOutboundModalProps({
             visible: false,
         })
-        setOutboundModalData({})
+        setOutboundModalData({
+            routeId: '',
+            routeName: '',
+            sites: [],
+            storeId: choosedStore.id,
+            storeName: choosedStore.storeName,
+            packageOrderNos: [],
+            driverName: '',
+            driverId: '',
+            vansNumber: '',
+            vansId: ''
+        })
         setOutboundModalLoading(false)
     }
 
@@ -288,6 +301,12 @@ export default function Outbound() {
         message.success('出库单创建成功')
         getOutboundList()
         handleOutboundModalClose()
+    }
+
+    const dropOutbound = async id => {
+        await httpUtils.post(`/admin/outboundOrder/drop/${id}`, {})
+        message.success('已作废')
+        getOutboundList()
     }
 
     const randerTableComponents = () => {
