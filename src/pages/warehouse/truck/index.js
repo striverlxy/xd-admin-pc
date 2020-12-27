@@ -133,6 +133,24 @@ export default function Truck() {
         setAllTruckList(resp.dataList)
     }
 
+    const [timeRadio, setTimeRadio] = useState('today')
+    const changeTimeRadio = timeOffsetType => {
+
+        let offset = 0
+        if (timeOffsetType == 'pre') {
+            offset = weekDay.offset - 7
+        } else if (timeOffsetType == 'after') {
+            offset = weekDay.offset + 7
+        }
+
+        if (offset == 0) {
+            timeOffsetType = 'today'
+        }
+
+        setTimeRadio(timeOffsetType)
+        getTruckScheduleList(offset)
+    }
+
     const [truckScheduleMap, setTruckScheduleMap] = useState([])
     const getTruckScheduleList = async (offset = weekDay.offset) => {
 
@@ -201,61 +219,6 @@ export default function Truck() {
         getTruckScheduleList()
     }
 
-    // const renderSchedulingCard = () => {
-    //     return (
-    //         <Card 
-    //             size="small"
-    //             title="（2020-10-01 ～ 2020-10-07）货车排班表" 
-    //             extra={
-    //                 <Space size={60}>
-    //                     <Radio.Group>
-    //                         <Radio.Button value="large">上一周</Radio.Button>
-    //                         <Radio.Button value="default">当前周</Radio.Button>
-    //                         <Radio.Button value="small">下一周</Radio.Button>
-    //                     </Radio.Group>
-    //                     <Button icon={<CopyOutlined />} type="primary">复制上周排班</Button>
-    //                 </Space>
-    //             }
-    //         >
-    //             <Card.Grid hoverable={false} style={firstGridStyle}></Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/1</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/2</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/3</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/4</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/5</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/6</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>10/7</Card.Grid>
-
-    //             <Card.Grid hoverable={false} style={firstGridStyle}>货车车牌（车型）</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周一</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周二</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周三</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周四</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周五</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周六</Card.Grid>
-    //             <Card.Grid hoverable={false} style={gridStyle}>周日</Card.Grid>
-
-    //             <Card.Grid style={firstGridStyle}>
-    //                 <Space size={20}>
-    //                     <Select style={{width: 100}}>
-    //                         <Select.Option>货车1</Select.Option>
-    //                         <Select.Option>货车2</Select.Option>
-    //                         <Select.Option>货车3</Select.Option>
-    //                     </Select>
-    //                     <Checkbox size="small">全可用</Checkbox>
-    //                 </Space>
-    //             </Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //             <Card.Grid style={gridStyle}><Checkbox size="small">可用</Checkbox></Card.Grid>
-    //         </Card>
-    //     )
-    // }
-
     const renderSchedulingCard = () => {
         return (
             <Card 
@@ -263,10 +226,10 @@ export default function Truck() {
                 title={`（${weekDay.list.length > 0 ? weekDay.list[0]: ''} ～ ${weekDay.list.length > 0 ? weekDay.list[weekDay.list.length - 1]: ''}）货车排班表`}
                 extra={
                     <Space size={60}>
-                        <Radio.Group>
-                            <Radio.Button value="large" onClick={() => getTruckScheduleList(weekDay.offset - 7)}>上一周</Radio.Button>
-                            <Radio.Button value="default" onClick={() => getTruckScheduleList(0)}>当前周</Radio.Button>
-                            <Radio.Button value="small" onClick={() => getTruckScheduleList(weekDay.offset + 7)}>下一周</Radio.Button>
+                        <Radio.Group value={timeRadio}>
+                            <Radio.Button value="pre" onClick={() => changeTimeRadio('pre')}>上一周</Radio.Button>
+                            <Radio.Button value="today" onClick={() => changeTimeRadio('today')}>当前周</Radio.Button>
+                            <Radio.Button value="after" onClick={() => changeTimeRadio('after')}>下一周</Radio.Button>
                         </Radio.Group>
                         <Button icon={<CopyOutlined />} type="primary" onClick={() => copyPreSchedule()}>复制上周排班</Button>
                     </Space>
@@ -431,7 +394,7 @@ export default function Truck() {
                     <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
                         {
                             storeList.map((item, index) => (
-                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
                             ))
                         }
                     </Select>

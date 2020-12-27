@@ -48,7 +48,6 @@ export default function Driver() {
         let params = {
             pageNum: pagination.current,
             pageSize: pagination.pageSize,
-            storeId: choosedStore.id
         }
         setLoading(true)
         let resp = await driverWebApi(params)
@@ -57,6 +56,7 @@ export default function Driver() {
     }
     
     const driverWebApi = async params => {
+        params.storeId = choosedStore.id
         return await httpUtils.get('/admin/driver/page', params)
     }
 
@@ -134,12 +134,30 @@ export default function Driver() {
     const getAllDriverList = async () => {
         let params = {
             pageNum: 1,
-            pageSize: 10000,
-            storeId: choosedStore.id
+            pageSize: 10000
         }
         let resp = await driverWebApi(params)
         setAllDriverList(resp.dataList)
     }
+
+    const [timeRadio, setTimeRadio] = useState('today')
+    const changeTimeRadio = timeOffsetType => {
+
+        let offset = 0
+        if (timeOffsetType == 'pre') {
+            offset = weekDay.offset - 7
+        } else if (timeOffsetType == 'after') {
+            offset = weekDay.offset + 7
+        }
+
+        if (offset == 0) {
+            timeOffsetType = 'today'
+        }
+
+        setTimeRadio(timeOffsetType)
+        getDriverScheduleList(offset)
+    }
+
     const [driverScheduleMap, setDriverScheduleMap] = useState([])
     const getDriverScheduleList = async (offset = weekDay.offset) => {
 
@@ -215,10 +233,10 @@ export default function Driver() {
                 title={`（${weekDay.list.length > 0 ? weekDay.list[0]: ''} ～ ${weekDay.list.length > 0 ? weekDay.list[weekDay.list.length - 1]: ''}）出货司机排班表`}
                 extra={
                     <Space size={60}>
-                        <Radio.Group>
-                            <Radio.Button value="large" onClick={() => getDriverScheduleList(weekDay.offset - 7)}>上一周</Radio.Button>
-                            <Radio.Button value="default" onClick={() => getDriverScheduleList(0)}>当前周</Radio.Button>
-                            <Radio.Button value="small" onClick={() => getDriverScheduleList(weekDay.offset + 7)}>下一周</Radio.Button>
+                        <Radio.Group value={timeRadio}>
+                            <Radio.Button value="pre" onClick={() => changeTimeRadio('pre')}>上一周</Radio.Button>
+                            <Radio.Button value="today" onClick={() => changeTimeRadio('today')}>当前周</Radio.Button>
+                            <Radio.Button value="after" onClick={() => changeTimeRadio('after')}>下一周</Radio.Button>
                         </Radio.Group>
                         <Button icon={<CopyOutlined />} type="primary" onClick={() => copyPreSchedule()}>复制上周排班</Button>
                     </Space>

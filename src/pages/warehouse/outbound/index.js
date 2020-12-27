@@ -59,6 +59,13 @@ export default function Outbound() {
         getOutboundList()
     }, [])
 
+
+    const printOutbound = () => {
+        window.document.body.innerHTML = window.document.getElementById('printArea').innerHTML;  
+        window.print(); 
+        window.location.reload();
+    }
+
     const columns = [
         {
             title: '序号',
@@ -113,11 +120,11 @@ export default function Outbound() {
             width: 200,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link>打印</Typography.Link>
+                    <Typography.Link onClick={() => printOutbound()}>打印</Typography.Link>
                     {
                         record.outboundStatus != 2 && <Typography.Link type="danger" onClick={() => dropOutbound(record.id)}>作废</Typography.Link>
                     }
-                    <Typography.Link>详情</Typography.Link>
+                    <Typography.Link onClick={() => handleOutboundDetailModalOpen(record)}>详情</Typography.Link>
                 </Space>
             )
         }
@@ -309,6 +316,24 @@ export default function Outbound() {
         getOutboundList()
     }
 
+    const [outboundDetailModalProps, setOutboundDetailModalProps] = useState({
+        visible: false
+    })
+    const [outboundDetailModalData, setOutboundDetailModalData] = useState({})
+
+    const handleOutboundDetailModalOpen = data => {
+        setOutboundDetailModalProps({
+            visible: true
+        })
+        setOutboundDetailModalData(data)
+    }
+    const handleOutboundDetailModalClose = () => {
+        setOutboundDetailModalProps({
+            visible: false
+        })
+        setOutboundDetailModalData({})
+    }
+
     const randerTableComponents = () => {
         return (
             <div>
@@ -478,11 +503,11 @@ export default function Outbound() {
                                             <Descriptions.Item label="车辆" span={3}>{outboundModalData.vansNumber}</Descriptions.Item>
                                             <Descriptions.Item label="订单" span={3}>
                                                 {
-                                                    outboundModalData.packageOrderNos.join('、')
+                                                    outboundModalData.packageOrderNos && outboundModalData.packageOrderNos.join('、')
                                                 }
                                             </Descriptions.Item>
                                             <Descriptions.Item label="送货站点" span={3}>{
-                                                outboundModalData.sites.map(site => site.siteName).join(' -> ')
+                                                outboundModalData.sites && outboundModalData.sites.map(site => site.siteName).join(' -> ')
                                             }</Descriptions.Item>
                                         </Descriptions>
                                 }
@@ -490,6 +515,36 @@ export default function Outbound() {
                         </Space>
                     </Modal>
                 </div>
+                <Modal
+                    width={500}
+                    destroyOnClose
+                    title="出库单详情"
+                    visible={outboundDetailModalProps.visible}
+                    onCancel={handleOutboundDetailModalClose}
+                    onOk={printOutbound}
+                    okText="打印"
+                >
+                    <div id={'printArea'}>
+                        <Descriptions
+                            bordered
+                            size="small"
+                        >
+                            <Descriptions.Item label="路线" span={3}>{outboundDetailModalData.routeName}</Descriptions.Item>
+                            <Descriptions.Item label="司机" span={3}>{outboundDetailModalData.driverName}</Descriptions.Item>
+                            <Descriptions.Item label="车辆" span={3}>{outboundDetailModalData.vansNumber}</Descriptions.Item>
+                            <Descriptions.Item label="订单" span={3}>
+                                {
+                                    outboundDetailModalData.packageOrderNos && outboundDetailModalData.packageOrderNos.join('、')
+                                }
+                            </Descriptions.Item>
+                            <Descriptions.Item label="送货站点" span={3}>
+                                {
+                                    outboundDetailModalData.sites && outboundDetailModalData.sites.map(site => site.siteName).join(' -> ')
+                                }
+                                </Descriptions.Item>
+                        </Descriptions>
+                    </div>
+                </Modal>
             </div>
         )
     }
@@ -501,7 +556,7 @@ export default function Outbound() {
                     <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
                         {
                             storeList.map((item, index) => (
-                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
                             ))
                         }
                     </Select>
