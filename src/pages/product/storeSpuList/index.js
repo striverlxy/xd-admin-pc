@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Drawer, Popconfirm, Divider, message} from 'antd';
-import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Drawer, Popconfirm, Divider, message, Modal} from 'antd';
+import { SearchOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
+import styles from './style.less'
 
 const { Option } = Select;
 
@@ -99,11 +100,6 @@ export default function StoreSpuList() {
         setSkuList([])
     }
 
-    const getSkuList = async storeId => {
-        let resp = await httpUtils.get('/admin/item/optional/store/sku/farms', {storeId: storeId})
-        setSkuList(resp)
-    }
-
     const skuColumns = [
         {
             title: '商品编号',
@@ -155,7 +151,7 @@ export default function StoreSpuList() {
             width: 150,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link onClick={() => console.log()}>供货农场</Typography.Link>
+                    <Typography.Link onClick={() => handleSkuFarmerModalOpen(record)}>供货农场</Typography.Link>
                     <Popconfirm placement="topLeft" title="确定删除该sku吗?" onConfirm={() => delSku(record)} okText="确定" cancelText="取消">
                         <Typography.Link type="danger">删除</Typography.Link>
                     </Popconfirm>
@@ -177,6 +173,78 @@ export default function StoreSpuList() {
         setSkuList(skus)
         getStoreSpuList()
     }
+
+
+    const [storeSkuFarmList, setStoreSkuFarmList] = useState([])
+    const getStoreSkuFarmList = async record => {
+        let resp = await httpUtils.get('/admin/item/optional/store/sku/farms', {storeId: choosedStore.id, skuNo: record.skuNo})
+        setStoreSkuFarmList(resp)
+    }
+
+
+    const [skuFarmerModalProps, setSkuFarmerModalProps] = useState({
+        visible: false,
+        sku: {}
+    })
+    const handleSkuFarmerModalOpen = sku => {
+        setSkuFarmerModalProps({
+            visible: true,
+            sku
+        })
+        getStoreSkuFarmList(sku)
+    }
+    const handleSkuFarmerModalClose = () => {
+        setSkuFarmerModalProps({
+            visible: false,
+            sku: {}
+        })
+        setStoreSkuFarmList([])
+    }
+
+    const movePosition = async (up, down) => {
+        // let data = {
+        //     upSiteId: routeSiteList[up].id,
+        //     downSiteId: routeSiteList[down].id,
+        // }
+        // await httpUtils.post('/admin/route/site/priority/update', data)
+        // message.success('调整成功')
+        // getRouteSiteList(routeDrawerProps.route.id)
+    }
+
+    const skuFarmColumns = [
+        {
+            title: '序号',
+            dataIndex: 'id',
+            align: 'center'
+        },
+        {
+            title: '农场编号',
+            dataIndex: 'farmId',
+            align: 'center'
+        },
+        {
+            title: '农场名称',
+            dataIndex: 'farmName',
+            align: 'center'
+        },
+        {
+            title: '供货优先级',
+            dataIndex: 'priority',
+            align: 'center'
+        },
+        {
+            title: '操作',
+            align: 'center',
+            key: 'action',
+            width: 150,
+            render: (text, record) => (
+                <Space size={0} split={<Divider type="vertical" />}>
+                    <ArrowUpOutlined className={styles.edit_icon}  />
+                    <ArrowDownOutlined className={styles.edit_icon}  />
+                </Space>
+            )
+        }
+    ]
 
     const randerTableComponents = () => {
         return (
@@ -237,6 +305,23 @@ export default function StoreSpuList() {
                         pagination={false}
                         loading={tableLoading}
                     />
+                    <Modal
+                        destroyOnClose
+                        title={skuFarmerModalProps.sku.spuName + '的供货农户'}
+                        visible={skuFarmerModalProps.visible}
+                        footer={false}
+                        onCancel={handleSkuFarmerModalClose}
+                    >
+                        <Table
+                            size="small"
+                            bordered={true}
+                            style={{marginTop: 12}}
+                            columns={skuFarmColumns}
+                            rowKey={record => record.id}
+                            dataSource={storeSkuFarmList}
+                            pagination={false}
+                        />
+                    </Modal>
                 </Drawer>
             </div>
         )

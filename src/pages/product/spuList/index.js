@@ -263,7 +263,7 @@ export default function SpuList() {
             width: 100,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link>编辑</Typography.Link>
+                    <Typography.Link onClick={() => handleSkuModalOpen(record)}>编辑</Typography.Link>
                     <Popconfirm placement="topLeft" title="确定删除该sku吗?" onConfirm={() => delSku(record.skuNo)} okText="确定" cancelText="取消">
                         <Typography.Link type="danger">删除</Typography.Link>
                     </Popconfirm>
@@ -287,6 +287,7 @@ export default function SpuList() {
             visible: true,
             title: data.id ? '更新商品': '新增商品'
         })
+
         setSkuModalData(data)
     }
     const handleSkuModalClose = () => {
@@ -353,6 +354,7 @@ export default function SpuList() {
     const setSkuAttrSelectValue = (e, index) => {
         let attrKeyList = cateAttrKeyList.slice()
         attrKeyList[index].selected = e
+        // setCateAttrKeyList(attrKeyList)
     }
     
     return (
