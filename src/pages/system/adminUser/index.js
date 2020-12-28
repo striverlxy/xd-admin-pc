@@ -70,7 +70,7 @@ const AdminUser = () => {
             render: roles => {
                 if (roles) {
                     roles = JSON.parse(roles)
-                    return roles.map(item => item.role_name).join('、')
+                    return roles.length > 0 && roles.map(item => item.role_name).join('、')
                 }
             }
         },
@@ -89,7 +89,7 @@ const AdminUser = () => {
             align: 'center',
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link>设置角色</Typography.Link>
+                    <Typography.Link onClick={() => handleUserRoleModalOpen(record)}>设置角色</Typography.Link>
                     <Typography.Link type="danger">删除</Typography.Link>
                 </Space>
             )
@@ -133,6 +133,52 @@ const AdminUser = () => {
         await httpUtils.post('/internal/signUp', adminUserModalData)
         message.success('添加成功')
         handleAdminUserModalClose()
+        getAdminUserList()
+    }
+
+
+    const [roleList, setRoleList] = useState([])
+    const getRoleList = async () => {
+        let resp = await httpUtils.get('/role/list', {})
+        setRoleList(resp)
+    }
+
+    const [userRoleModalProps, setUserRoleModalProps] = useState({
+        visible: false,
+        userAdmin: {}
+    })
+    const [userRoleModalData, setUserRoleModalData] = useState({})
+    const [userRoleModalLoading, setUserRoleModalLoading] = useState(false)
+
+    const handleUserRoleModalOpen = userAdmin => {
+        setUserRoleModalProps({
+            visible: true
+        })
+        
+        let roleIds = JSON.parse(userAdmin.roles).map(item => item.role_id)
+        let tmpUser = {
+            id: userAdmin.id,
+            roleIds
+        }
+        setUserRoleModalData(tmpUser)
+        getRoleList()
+    }
+    const handleUserRoleModalClose = () => {
+        setUserRoleModalProps({
+            visible: false
+        })
+        setUserRoleModalData({})
+        setUserRoleModalLoading(false)
+    }
+    const handleUserRoleModalOk = async () => {
+        let data = {
+            systemType: 0,
+            userId: userRoleModalData.id,
+            roleIds: userRoleModalData.roleIds
+        }
+        await httpUtils.post('/internal/role/bind', data)
+        message.success('操作完成')
+        handleUserRoleModalClose()
         getAdminUserList()
     }
 
@@ -290,6 +336,39 @@ const AdminUser = () => {
                                     </Select>
                                 </Form.Item>
                         }
+                    </Form>
+                </Modal>
+                <Modal
+                    destroyOnClose
+                    title={userRoleModalProps.title}
+                    visible={userRoleModalProps.visible}
+                    onOk={handleUserRoleModalOk}
+                    confirmLoading={userRoleModalLoading}
+                    onCancel={handleUserRoleModalClose}
+                >
+                    <Form size="large">
+                        <Form.Item
+                            label="用户角色"
+                        >
+                            <Select
+                                mode="multiple"
+                                placeholder="请选择用户角色" 
+                                style={{ width: 200 }} 
+                                value={userRoleModalData.roleIds || []} 
+                                onChange={(e1, e2) => {
+                                    setUserRoleModalData({
+                                        ...userRoleModalData,
+                                        roleIds: e1
+                                    })
+                                }}
+                            >
+                                {
+                                    roleList.map((item, index) => (
+                                        <Select.Option value={item.id} key={index}>{item.roleName}</Select.Option>
+                                    ))
+                                }
+                            </Select>
+                        </Form.Item>
                     </Form>
                 </Modal>
             </div>
