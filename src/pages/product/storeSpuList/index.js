@@ -249,7 +249,7 @@ export default function StoreSpuList() {
                     <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
                         {
                             storeList.map((item, index) => (
-                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
                             ))
                         }
                     </Select>

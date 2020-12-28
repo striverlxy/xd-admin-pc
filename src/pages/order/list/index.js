@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Tabs, Button, Table, Typography, Select, Card, Space, Input, DatePicker, Divider} from 'antd';
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -19,122 +20,108 @@ const blockStyle = {
 
 export default function OrderList() {
 
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
+
+
     const [data, setData] = useState([])
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
         total: 200
     })
-    const [loading, setLoading] = useState(false)
+    const [tableLoading, setTableLoading] = useState(false)
+
+    const getOrderList = async (pagination = {pageSize: 10, current: 1}) => {
+        let params = {
+            pageNum: pagination.current,
+            pageSize: pagination.pageSize
+        }
+        setTableLoading(true)
+        let resp = await httpUtils.get('/admin/order/page', params)
+        setData(resp)
+        setTableLoading(false)
+    }
 
     useEffect(() => {
-        setLoading(true)
-        setTimeout(() => {
-            let data = [
-                {
-                    id: 1,
-                    name: "张三",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 2,
-                    name: "张三02",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 3,
-                    name: "张三03",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 4,
-                    name: "张三04张三04张三04",
-                    gender: 2,
-                    email: '1@123'
-                },
-                {
-                    id: 5,
-                    name: "张三05",
-                    gender: 1,
-                    email: '1@123'
-                },
-                {
-                    id: 6,
-                    name: "张三06",
-                    gender: 1,
-                    email: '1@123'
-                }
-            ]
-            setData(data)
-            setLoading(false)
-        }, 100)
+        getStoreList()
+        getOrderList()
     }, [])
 
     const columns = [
         {
             title: '序号',
-            dataIndex: 'name',
+            dataIndex: 'id',
             align: 'center',
         },
         {
             title: '订单号',
-            dataIndex: 'name',
+            dataIndex: 'orderNo',
             align: 'center',
             width: 200
         },
         {
             title: '下单日期',
-            dataIndex: 'name',
+            dataIndex: 'orderTime',
             align: 'center',
             width: 160
         },
         {
-            title: '售价（元）',
-            dataIndex: 'name',
+            title: '所属集配仓',
+            dataIndex: 'storeName',
             align: 'center',
         },
         {
-            title: '农户分账（元）',
-            dataIndex: 'name',
+            title: '所属站点',
+            dataIndex: 'siteId',
             align: 'center',
-            width: 120
+        },
+        {
+            title: '订单金额',
+            dataIndex: 'totalAmount',
+            align: 'center',
         },
         {
             title: '配送方式',
-            dataIndex: 'name',
+            dataIndex: 'deliveryType',
             align: 'center',
+            render: deliveryType => deliveryType == 1 ? '自提': '送货上门'
         },
         {
             title: '支付方式',
-            dataIndex: 'name',
+            dataIndex: 'payType',
             align: 'center',
         },
         {
             title: '收货人',
-            dataIndex: 'name',
+            dataIndex: 'receiverName',
             align: 'center',
         },
         {
             title: '手机',
-            dataIndex: 'name',
+            dataIndex: 'receiverPhone',
             align: 'center',
         },
         {
             title: '收获地址',
-            dataIndex: 'name',
+            dataIndex: 'receiverAddress',
             align: 'center',
         },
         {
             title: '备注',
-            dataIndex: 'name',
+            dataIndex: 'note',
             align: 'center',
         },
         {
             title: '订单状态',
-            dataIndex: 'name',
+            dataIndex: 'orderStatus',
             align: 'center',
         },
         {
@@ -148,7 +135,6 @@ export default function OrderList() {
                     <Typography.Link>详情</Typography.Link>
                     <Typography.Link type="danger">改单</Typography.Link>
                     <Typography.Link type="danger">退款</Typography.Link>
-                    <Typography.Link>拆单</Typography.Link>
                 </Space>
             )
         }
@@ -208,9 +194,6 @@ export default function OrderList() {
                 <Button style={borderRadius} type="primary" size="middle">
                     批量打印
                 </Button>
-                <Button style={borderRadius} type="primary" size="middle">
-                    合并订单
-                </Button>
             </Space>
             <Table
                 size="small"
@@ -219,9 +202,12 @@ export default function OrderList() {
                 style={{marginTop: 12}}
                 columns={columns}
                 rowKey={record => record.id}
-                dataSource={data}
-                pagination={pagination}
-                loading={loading}
+                dataSource={data.dataList}
+                pagination={{
+                    total: data.totalCount
+                }}
+                loading={tableLoading}
+                onChange={async (pagination, filters, sorter) => getOrderList(pagination)}
             />
             </div>
         )
@@ -231,20 +217,16 @@ export default function OrderList() {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >
-                <TabPane tab="今日订单" key="1">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="昨日订单" key="2">
-                    {randerTable()}
-                </TabPane>
-                <TabPane tab="全部订单" key="3">
+                <TabPane tab="订单管理" key="1">
                     {randerTable()}
                 </TabPane>
             </Tabs>

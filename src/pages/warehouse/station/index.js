@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Space, Divider, Modal, Form, Input, message, Switch} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Space, Divider, Modal, Form, Input, message, Switch, Popconfirm, InputNumber} from 'antd';
 import styles from './style.less'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
@@ -22,6 +22,19 @@ const blockStyle = {
     borderRadius: 4,
     marginBottom: 12,
     boxShadow: '0 2px 3px 0 rgba(0, 0, 0, .1)'
+}
+
+const formRules = {
+    mobile: [
+        {
+          required: true,
+          message: '请输入手机号码',
+        },
+        {
+          pattern: /^1\d{10}$/,
+          message: '手机号码格式有误',
+        }
+    ],
 }
 
 export default function Station() {
@@ -79,7 +92,7 @@ export default function Station() {
         },
         {
             title: '站点地址',
-            dataIndex: 'name',
+            dataIndex: 'address',
             align: 'center',
         },
         {
@@ -95,7 +108,7 @@ export default function Station() {
         {
             title: '营业状态',
             align: 'center',
-            render: record => <Switch checkedChildren="营业" unCheckedChildren="未营业" checked={record.busyStatus} />
+            render: record => <Switch checkedChildren="营业" unCheckedChildren="未营业" checked={record.busyStatus} onChange={() => handleSiteUpdateBusyStatus(record)} />
         },
         {
             title: '操作',
@@ -104,7 +117,9 @@ export default function Station() {
             width: 150,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link type="danger">删除</Typography.Link>
+                    <Popconfirm placement="topLeft" title="确定删除该站点吗?" onConfirm={() => delSite(record.id)} okText="确定" cancelText="取消">
+                        <Typography.Link type="danger">删除</Typography.Link>
+                    </Popconfirm>
                     <Typography.Link onClick={() => handleSiteModalOpen(record)}>编辑</Typography.Link>
                 </Space>
             )
@@ -134,11 +149,40 @@ export default function Station() {
         setSiteModalLoading(false)
     }
     const handleSiteModalOk = async () => {
+
+        if (!siteModalData.contactPhone) {
+            message.error('请输入手机号码')
+            return
+        }
+
+        if (!/^1\d{10}$/.test(siteModalData.contactPhone)) {
+            message.error('手机号码格式有误')
+            return
+        }
+
         await httpUtils.post(siteModalData.id ? '/admin/site/update': '/admin/site/add', siteModalData)
         message.success('操作完成')
         handleSiteModalClose()
         getStationList()
     }
+
+    const handleSiteUpdateBusyStatus = async record => {
+        let data = {
+            id: record.id,
+            busyStatus: record.busyStatus == 0 ? 1: 0
+        }
+        await httpUtils.post('/admin/site/update', data)
+        message.success('操作完成')
+        getStationList()
+    }
+
+    const delSite = async id => {
+        await httpUtils.post(`/admin/site/del/${id}`, {})
+        message.success('删除成功')
+        getStationList()
+    }
+
+    const [form] = Form.useForm();
 
     const randerTable = () => {
         return (
@@ -200,7 +244,7 @@ export default function Station() {
                                 }}>
                                 {
                                     storeList.map((item, index) => (
-                                        <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                        <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
                                     ))
                                 }
                             </Select>
@@ -224,7 +268,7 @@ export default function Station() {
                         <Form.Item
                             label="联系电话"
                         >
-                            <Input 
+                            <Input
                                 value={siteModalData.contactPhone} 
                                 size="large" 
                                 onChange={e => {
@@ -256,15 +300,13 @@ export default function Station() {
                         <Form.Item
                             label="配送半径(km)"
                         >
-                            <Input 
-                                value={siteModalData.serviceDistance} 
+                            <InputNumber
+                                value={siteModalData.serviceRadius} 
                                 size="large" 
-                                onChange={e => {
-                                    const { value } = e.target
-
+                                onChange={value => {
                                     setSiteModalData({
                                         ...siteModalData,
-                                        serviceDistance: value
+                                        serviceRadius: value
                                     })
                                 }}  
                                 placeholder="请输入配送半径" />
@@ -282,7 +324,7 @@ export default function Station() {
                     <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
                         {
                             storeList.map((item, index) => (
-                                <Select.Option value={item.id}>{item.storeName}</Select.Option>
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
                             ))
                         }
                     </Select>

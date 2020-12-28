@@ -231,6 +231,11 @@ const router = [
                         icon: <UserOutlined />,
                         children: [
                             {
+                                path: '/system/optSetting',
+                                name: '运营设置',
+                                component: lazy(() => import('../pages/system/optSetting'))
+                            },
+                            {
                                 path: '/system/adminUser',
                                 name: '用户管理',
                                 component: lazy(() => import('../pages/system/adminUser'))
