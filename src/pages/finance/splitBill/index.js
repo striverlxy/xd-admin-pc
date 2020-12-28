@@ -16,6 +16,16 @@ const blockStyle = {
 }
 
 const SplitBill = () => {
+    
+    const [storeList, setStoreList] = useState([])
+    const [choosedStore, setChoosedStore] = useState({})
+    const getStoreList = async () => {
+        let resp = await httpUtils.get('/admin/store/list')
+        setStoreList(resp)
+        if (resp.length > 0) {
+            setChoosedStore(resp[0])
+        }
+    }
 
     const [billList, setBillList] = useState({})
     const [tableLoading, setTableLoading] = useState(false)
@@ -33,6 +43,7 @@ const SplitBill = () => {
 
     useEffect(() => {
         getFeeTicketList()
+        getStoreList()
     }, [])
 
     const columns = [
@@ -78,10 +89,17 @@ const SplitBill = () => {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }}>
-                        <Select.Option value="1">成都集配仓</Select.Option>
-                        <Select.Option value="2">上海集配仓</Select.Option>
-                        <Select.Option value="3">南京集配仓</Select.Option>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id} onChange={(e1, e2) => {
+                        setChoosedStore({
+                            id: e2.value,
+                            storeName: e2.children
+                        })
+                    }}>
+                        {
+                            storeList.map((item, index) => (
+                                <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
+                            ))
+                        }
                     </Select>
                 }
             >

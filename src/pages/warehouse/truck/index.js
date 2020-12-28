@@ -391,7 +391,12 @@ export default function Truck() {
         <div style={blockStyle}>
             <Tabs 
                 tabBarExtraContent={
-                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id}>
+                    <Select placeholder="请选择集配仓" style={{ width: 200 }} value={choosedStore.id} onChange={(e1, e2) => {
+                        setChoosedStore({
+                            id: e2.value,
+                            storeName: e2.children
+                        })
+                    }}>
                         {
                             storeList.map((item, index) => (
                                 <Select.Option value={item.id} key={index}>{item.storeName}</Select.Option>
