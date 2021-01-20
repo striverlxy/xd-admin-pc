@@ -13,10 +13,10 @@ export default class request {
 	
 	static whiteUrls = ['/user/brand/signIn']
     
-	// static API_HOST = 'http://localhost:8080'
+	static API_HOST = 'http://localhost:8080'
 	// static API_HOST = 'http://34185368sk.wicp.vip:41784/'
 	
-	static API_HOST = 'http://42.192.182.208:9999'
+	// static API_HOST = 'http://42.192.182.208:9999'
 
     static SUCCESS_CODE = '000000'
 

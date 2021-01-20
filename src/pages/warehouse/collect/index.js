@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Divider, Drawer} from 'antd';
+import { Tabs, Button, Table, Typography, Select, Card, Space, Input, Divider, Drawer, Descriptions} from 'antd';
 import styles from './style.less'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
+import { renderToString } from 'react-dom/server'
 import httpUtils from '../../../utils/request'
 
 const { Option } = Select;
@@ -88,7 +89,7 @@ export default function Collect() {
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
                     <Typography.Link onClick={() => handleSlaveCollectDrawerOpen(record)}>分时集采单</Typography.Link>
-                    <Typography.Link>打印</Typography.Link>
+                    <Typography.Link onClick={() => print(record)}>打印</Typography.Link>
                 </Space>
             )
         }
@@ -177,6 +178,27 @@ export default function Collect() {
         },
     ]
 
+    const print = record => {
+        window.document.body.innerHTML = renderToString(
+            <div>
+                <Descriptions
+                    bordered
+                    size="small"
+                    title="集采单"
+                >
+                    <Descriptions.Item label="序号" span={3}>{record.id}</Descriptions.Item>
+                    <Descriptions.Item label="集采单编号" span={3}>{record.collectMasterOrderNo}</Descriptions.Item>
+                    <Descriptions.Item label="供货农户" span={3}>{record.farmName}</Descriptions.Item>
+                    <Descriptions.Item label="收货集配仓" span={3}>{record.storeName}</Descriptions.Item>
+                    <Descriptions.Item label="预计送货时间" span={3}>{record.expectTime}</Descriptions.Item>
+                    <Descriptions.Item label="订单发货时间" span={3}>{record.orderTime}</Descriptions.Item>
+                </Descriptions>
+            </div>
+        )
+        window.print(); 
+        window.location.reload();
+    }
+
     const randerTable = () => {
         return (
             <div>
@@ -205,18 +227,20 @@ export default function Collect() {
                         </Select>
                     </Space>
                 </Card>
-                <Table
-                    bordered={true}
-                    style={{marginTop: 12}}
-                    columns={columns}
-                    rowKey={record => record.id}
-                    dataSource={data.dataList}
-                    pagination={{
-                        total: data.totalCount
-                    }}
-                    loading={tableLoading}
-                    onChange={async (pagination, filters, sorter) => getCollectList(pagination)}
-                />
+                <div id={'printArea'}>
+                    <Table
+                        bordered={true}
+                        style={{marginTop: 12}}
+                        columns={columns}
+                        rowKey={record => record.id}
+                        dataSource={data.dataList}
+                        pagination={{
+                            total: data.totalCount
+                        }}
+                        loading={tableLoading}
+                        onChange={async (pagination, filters, sorter) => getCollectList(pagination)}
+                    />
+                </div>
                 <Drawer
                     title={`【${slaveCollectDrawerProps.masterCollect.collectMasterOrderNo}】的分时集采单`}
                     destroyOnClose

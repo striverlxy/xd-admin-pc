@@ -4,6 +4,7 @@ import styles from './style.less'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
 import Modal from 'antd/lib/modal/Modal';
+import { renderToString } from 'react-dom/server'
 
 const { Step } = Steps;
 
@@ -120,7 +121,7 @@ export default function Outbound() {
             width: 200,
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link onClick={() => printOutbound()}>打印</Typography.Link>
+                    <Typography.Link onClick={() => print(record)}>打印</Typography.Link>
                     {
                         record.outboundStatus != 2 && <Typography.Link type="danger" onClick={() => dropOutbound(record.id)}>作废</Typography.Link>
                     }
@@ -129,6 +130,34 @@ export default function Outbound() {
             )
         }
     ];
+
+    const print = record => {
+        window.document.body.innerHTML = renderToString(
+            <div>
+                <Descriptions
+                    bordered
+                    size="small"
+                    title="集采单"
+                >
+                    <Descriptions.Item label="路线" span={3}>{record.routeName}</Descriptions.Item>
+                    <Descriptions.Item label="司机" span={3}>{record.driverName}</Descriptions.Item>
+                    <Descriptions.Item label="车辆" span={3}>{record.vansNumber}</Descriptions.Item>
+                    <Descriptions.Item label="订单" span={3}>
+                        {
+                            record.packageOrderNos && record.packageOrderNos.join('、')
+                        }
+                    </Descriptions.Item>
+                    <Descriptions.Item label="送货站点" span={3}>
+                        {
+                            record.sites && record.sites.map(site => site.siteName).join(' -> ')
+                        }
+                    </Descriptions.Item>
+                </Descriptions>
+            </div>
+        )
+        window.print(); 
+        window.location.reload();
+    }
 
 
     const [outboundModalProps, setOutboundModalProps] = useState({

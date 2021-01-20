@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Space, Button, Table, Divider, Typography, Image, Tabs, Select } from 'antd'
+import { Space, Button, Table, Divider, Typography, Image, Tabs, Select, Descriptions } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import httpUtils from '../../../utils/request'
+import { renderToString } from 'react-dom/server'
 
 const borderRadius = { borderRadius: 4 }
 const { TabPane } = Tabs
@@ -78,12 +79,32 @@ const SplitBill = () => {
             key: 'action',
             render: (text, record) => (
                 <Space size={0} split={<Divider type="vertical" />}>
-                    <Typography.Link>打印</Typography.Link>
+                    <Typography.Link onClick={() => print(record)}>打印</Typography.Link>
                     <Typography.Link>详情</Typography.Link>
                 </Space>
             )
         }
     ]
+
+    const print = record => {
+        window.document.body.innerHTML = renderToString(
+            <div>
+                <Descriptions
+                    bordered
+                    size="small"
+                    title="分账单"
+                >
+                    <Descriptions.Item label="序号" span={3}>{record.id}</Descriptions.Item>
+                    <Descriptions.Item label="分账单编号" span={3}>{record.ticketNo}</Descriptions.Item>
+                    <Descriptions.Item label="供货农户" span={3}>{record.farmName}</Descriptions.Item>
+                    <Descriptions.Item label="集配仓" span={3}>{record.storeName}</Descriptions.Item>
+                    <Descriptions.Item label="生成时间" span={3}>{record.createTime}</Descriptions.Item>
+                </Descriptions>
+            </div>
+        )
+        window.print(); 
+        window.location.reload();
+    }
 
     return (
         <div style={blockStyle}>
